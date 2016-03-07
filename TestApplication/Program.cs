@@ -1,5 +1,6 @@
 ﻿using CsvHelper;
 using DataMining;
+using DataMining.DecisionTrees;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -14,9 +15,11 @@ namespace TestApplication
     {
         private static void Main(string[] args)
         {
-
+            
             // Tools.Test();
             var data = LoadDataFromfCSV("Data.csv");
+
+            TestNaiveBayes();
             var algorithm = new C45Algorithm();
             var fixedData = TableFixedData.FromTableData(data);
 
@@ -27,6 +30,23 @@ namespace TestApplication
 
             var watch1 = new Stopwatch();
             var watch2 = new Stopwatch();
+
+
+            var decisionalTree = algorithm.BuildConditionalTreeOptimized(fixedData);
+
+            for (int index = 0; index < 50; index++)
+            {
+                //var className1 = ret1.GetClass(data.ToList()[8]);
+                var row = data.ToList()[index];
+                var estimatedClassName = decisionalTree.GetClass(row);
+                if (estimatedClassName != row.Class)
+                {
+                   // missed++;
+                }
+            }
+
+
+
 
             for (int index = 0; index < 100; index++)
             {
@@ -46,6 +66,30 @@ namespace TestApplication
             }
             delta = watch1.Elapsed.Subtract(watch2.Elapsed).TotalMilliseconds;
 
+        }
+
+
+        private static void TestNaiveBayes()
+        {
+            var data = LoadDataFromfCSV("Data.csv");            
+            var fixedData = TableFixedData.FromTableData(data);
+
+            var algorithm = new NaiveBayesClassifier(fixedData);
+
+
+            var className = algorithm.Compute(data.ToList()[2]);
+            int missed=0;
+
+            for (int index = 0; index < 50;index++ )
+            {
+                var row = data.ToList()[index];
+                var estimatedClassName = algorithm.Compute(row);
+                if (estimatedClassName != row.Class)
+                {
+                    missed++;
+                }
+
+            }
         }
 
 
