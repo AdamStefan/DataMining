@@ -103,7 +103,7 @@ namespace DataMining
             return tableFixedData;
         }
 
-        public T[] GetColumn<T>(int columnIndex,IValueConverter<T> converter=null)
+        public T[] GetColumn<T>(int columnIndex, IValueConverter<T> converter = null)
         {
             var column = new T[_data.GetLength(0)];
             for (int index = 0; index < column.Length; index++)

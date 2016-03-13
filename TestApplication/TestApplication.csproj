@@ -47,6 +47,7 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SentimentAnalysis\SentimentAnalysis.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -63,6 +64,10 @@
       <Project>{a8230d35-6dca-419e-b487-5ad99d8a15ea}</Project>
       <Name>DataMining</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="SentimentAnalysis\Lexicons\NegativeWords.txt" />
+    <Content Include="SentimentAnalysis\Lexicons\PositiveWords.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

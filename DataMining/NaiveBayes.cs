@@ -22,8 +22,7 @@ namespace DataMining
 
         public NaiveBayesClassifier(TableFixedData data)
         {
-            _data = data;            
-            var attributes = new List<int>();
+            _data = data;                        
             var doubleConverter = new DoubleConverter();
 
             _distribution = new IDistribution[data.ClassesValue.Length, data.Attributes.Length];
@@ -61,9 +60,9 @@ namespace DataMining
                     }
                 }
 
-                attributes.Add(index);
+               
             }
-        }
+        }       
 
         #endregion
 
@@ -140,16 +139,126 @@ namespace DataMining
                     maxProbabilityIndex = index;
                 }
             }
-            //var sum = probabilities.Sum();
-            //var prob =  probabilities.Select(item=>item/sum).ToArray();
+          
             return _data.ClassesValue[maxProbabilityIndex];
-
-            //return prob;
+            
         }
 
     }
 
 
+
+    //public class DiscreteNaiveBayesClasifier
+
+    public struct DataPoint
+    {
+        public int ColumnId { get; set; }
+        public double Value { get; set; }
+    }
+
+    public class Sample
+    {
+        public DataPoint[] DataPoints { get; set; }
+        public int ClassId { get; set; }
+    }
+     
+
+    public class NaiveBayesClassifierExtended
+    {
+        private IDistribution[,] _distribution;
+        private IDistribution _classesProbablityDistribution;
+        private bool _laplacianSmoothing;
+        private int _classes;
+        private bool[] _isColumnNumeric;
+
+        public NaiveBayesClassifierExtended(Sample[] samples, int classes, bool[] isColumnNumeric)
+        {
+            //_data = data;
+            var attributes = new List<int>();
+            var doubleConverter = new DoubleConverter();
+            _isColumnNumeric = isColumnNumeric;
+            _classes = classes;
+
+            _distribution = new IDistribution[classes, isColumnNumeric.Length];
+            _classesProbablityDistribution = new CategoricalDistribution(samples.Select(item => item.ClassId).ToArray(), classes);
+
+            for (int index = 0; index < isColumnNumeric.Length; index++)
+            {
+                var values = GetDataPerClass(samples, _classes, index);
+                if (isColumnNumeric[index])
+                {
+
+                    for (int classIndex = 0; classIndex < classes; classIndex++)
+                    {
+                        if (isColumnNumeric[index])
+                        {
+                            _distribution[classIndex, index] = new GaussianDistribution(values[classIndex]);
+                        }
+                        else
+                        {
+                            _distribution[classIndex, index] = new CategoricalDistribution(values[classIndex].Select(item => Convert.ToInt32(item)).ToArray());
+                        }
+                    }
+                }
+
+            }
+
+        }
+
+        public Double[][] GetDataPerClass(Sample[] samples, int classes, int columnIndex)
+        {
+            var retLists = new List<double>[classes];
+            var dataRet = new double[classes][];
+
+            for (int index = 0; index < samples.Length; index++)
+            {
+                var sample = samples[index];
+                foreach (var datapoint in sample.DataPoints)
+                {
+                    if (datapoint.ColumnId == columnIndex)
+                    {
+                        retLists[sample.ClassId].Add(datapoint.Value);
+                    }
+                }
+
+            }
+
+            for (int index = 0; index < classes; index++)
+            {
+                dataRet[index] = retLists[index].ToArray();
+            }
+            return dataRet;
+
+        }
+
+        public int Compute(Sample sample)
+        {
+            var probabilities = new double[_classes];                        
+            var maxProbabilityIndex = 0;
+
+            for (int index = 0; index < probabilities.Length; index++)
+            {
+                probabilities[index] = _classesProbablityDistribution.GetLogProbability(index);
+
+                foreach (var dataPoint in sample.DataPoints)
+                {
+
+                    var value = Convert.ToDouble(dataPoint.Value);
+
+                    probabilities[index] = probabilities[index] + _distribution[index, dataPoint.ColumnId].GetLogProbability(value);
+
+                }
+                if (probabilities[maxProbabilityIndex] < probabilities[index])
+                {
+                    maxProbabilityIndex = index;
+                }
+            }
+
+            return maxProbabilityIndex;
+
+        }
+
+    }
 
 }
 
