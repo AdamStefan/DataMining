@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace DataMining
 {
@@ -9,4 +10,5 @@ namespace DataMining
         IEnumerable<string> Attributes { get; }
         bool IsNumeric(string attribute);        
     }
+    
 }

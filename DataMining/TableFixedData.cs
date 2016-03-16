@@ -9,11 +9,25 @@ namespace DataMining
         #region Fields
 
         private int _classIndex;
+
         private Dictionary<string, int>[] _labelsDictionary;
+
+        public string[] ClassesValue;
+
+        public string[] Attributes;
+
+        private object[,] _data;
 
         #endregion
 
         #region Properties
+
+        public bool IsDiscreteColumn(int column)
+        {            
+            return ColumnDataTypes[column] == ColumnDataType.Discrete;
+        }
+
+        public ColumnDataType[] ColumnDataTypes { get; private set; }
 
         public object this[int rowIndex, int columnIndex]
         {
@@ -30,16 +44,7 @@ namespace DataMining
             return (int)_data[rowIndex, _classIndex];
         }
 
-        #endregion
-
-        #region Fields
-
-        public string[] ClassesValue;
-        public string[] Attributes;        
-
-        private object[,] _data;
-
-        #endregion
+        #endregion      
 
         public static TableFixedData FromTableData(ITableData tableData)
         {
@@ -100,7 +105,90 @@ namespace DataMining
             }
             tableFixedData._labelsDictionary = new Dictionary<string, int>[tableFixedData.Attributes.Length];
 
+            tableFixedData.ColumnDataTypes = new ColumnDataType[tableFixedData.Attributes.Length];
+            for (int columnIndex = 0; columnIndex < tableFixedData.Attributes.Length; columnIndex++)
+            {
+                if (tableFixedData.Attributes[columnIndex] == TableData.ClassAttributeName)
+                {
+                    tableFixedData.ColumnDataTypes[columnIndex] = ColumnDataType.Discrete;
+                    continue;
+                }
+
+                var currentValue = tableFixedData._data[0, columnIndex];
+                tableFixedData.ColumnDataTypes[columnIndex] = currentValue.IsNumeric()
+                    ? ColumnDataType.Continuous
+                    : ColumnDataType.Discrete;
+            }
+
             return tableFixedData;
+        }
+
+        public static DataSample[] ToSample(TableFixedData tableFixedData)
+        {
+            var samples = new DataSample[tableFixedData.Count];
+
+            for (int rowIndex = 0; rowIndex < tableFixedData.Count; rowIndex++)
+            {
+                var currentSample = new DataSample
+                {
+                    DataPoints = new DataPoint[tableFixedData.Attributes.Length - 1],
+                    ClassId = tableFixedData.Class(rowIndex)
+                };
+                int dataPointIndex = 0;
+                for (int columnIndex = 0; columnIndex < tableFixedData.Attributes.Length; columnIndex++)
+                {
+                    if (tableFixedData.Attributes[columnIndex] != TableData.ClassAttributeName)
+                    {
+                        var value = tableFixedData[rowIndex, columnIndex];
+                        var dataPoint = new DataPoint
+                        {
+                            ColumnId = columnIndex,
+                            Value =
+                                tableFixedData.IsDiscreteColumn(columnIndex)
+                                    ? Convert.ToDouble(tableFixedData.GetSymbol(value.ToString(), columnIndex))
+                                    : Convert.ToDouble(value)
+                        };
+
+                        currentSample.DataPoints[dataPointIndex] = dataPoint;
+
+                        dataPointIndex++;
+                    }
+
+                }
+
+                samples[rowIndex] = currentSample;
+            }
+
+            return samples;
+        }
+
+        public DataSample GetSample(IDataRow dataRow)
+        {
+            var sample = new DataSample {DataPoints = new DataPoint[Attributes.Length - 1]};
+            var dataPointIndex = 0;
+
+            for (var columnIndex = 0; columnIndex < Attributes.Length; columnIndex++)
+            {
+                if (Attributes[columnIndex] != TableData.ClassAttributeName)
+                {
+                    var value = dataRow[Attributes[columnIndex]];
+
+                    var dataPoint = new DataPoint
+                    {
+                        ColumnId = columnIndex,
+                        Value =
+                            IsDiscreteColumn(columnIndex)
+                                ? Convert.ToDouble(GetSymbol(value.ToString(), columnIndex))
+                                : Convert.ToDouble(value)
+                    };
+
+                    sample.DataPoints[dataPointIndex] = dataPoint;
+                    dataPointIndex++;
+
+                }                
+            }
+
+            return sample;
         }
 
         public T[] GetColumn<T>(int columnIndex, IValueConverter<T> converter = null)
@@ -121,7 +209,6 @@ namespace DataMining
             return column;
         }
         
-
         public int[] GetSymbols(int columnIndex)
         {
             if (columnIndex >= Attributes.Length)
@@ -169,6 +256,6 @@ namespace DataMining
             }
             return _labelsDictionary[columnIndex][value];
         }
-
+       
     }
 }

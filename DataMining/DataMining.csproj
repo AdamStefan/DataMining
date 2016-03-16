@@ -45,6 +45,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BaseDataColumn.cs" />
+    <Compile Include="ColumnDataType.cs" />
+    <Compile Include="DataPoint.cs" />
     <Compile Include="DecisionTrees\C45Algorithm.cs" />
     <Compile Include="DecisionTrees\C45AlgorithmData.cs" />
     <Compile Include="DecisionTrees\C45AlgorithmDataOptimized.cs" />
@@ -53,12 +55,16 @@
     <Compile Include="Distributions\CategoricalDistribution.cs" />
     <Compile Include="Distributions\GaussianDistribution.cs" />
     <Compile Include="Distributions\IDistribution.cs" />
+    <Compile Include="DoubleConverter.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="IDataColumn.cs" />
     <Compile Include="IDataRow.cs" />
     <Compile Include="ITableData.cs" />
-    <Compile Include="NaiveBayes.cs" />
+    <Compile Include="IValueConverter.cs" />
+    <Compile Include="NaiveBayesClassifier.cs" />
+    <Compile Include="NaiveBayesClassifierOld.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="DataSample.cs" />
     <Compile Include="TableFixedData.cs" />
     <Compile Include="Tools.cs" />
   </ItemGroup>

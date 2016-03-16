@@ -26,7 +26,8 @@ namespace DataMining
             get { return false; }
         }
 
-        public int Count { get; private set; } // the rowCount
+        public int Count { get; private set; }
+      
 
         public IEnumerable<string> Attributes
         {

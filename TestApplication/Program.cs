@@ -1,13 +1,13 @@
-﻿using CsvHelper;
-using DataMining;
-using DataMining.DecisionTrees;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Text.RegularExpressions;
+using CsvHelper;
+using CsvHelper.Configuration;
+using DataMining;
+using DataMining.DecisionTrees;
+using TestApplication.SentimentAnalysis;
 
 namespace TestApplication
 {
@@ -17,6 +17,8 @@ namespace TestApplication
         {
             
             // Tools.Test();
+
+            TestSentimentAnalysis();
             var data = LoadDataFromfCSV("Data.csv");
 
             TestNaiveBayes();
@@ -71,16 +73,26 @@ namespace TestApplication
 
         private static void TestNaiveBayes()
         {
-            var data = LoadDataFromfCSV("Data.csv");            
+            var data = LoadDataFromfCSV("Data.csv");
+
             var fixedData = TableFixedData.FromTableData(data);
+            var samples = TableFixedData.ToSample(fixedData);
+            var columnsTypes = fixedData.ColumnDataTypes;
 
-            var algorithm = new NaiveBayesClassifier(fixedData);
+            var algorithm = new NaiveBayesClassifierOld(fixedData);
 
+            var algorithm1 = new NaiveBayesClassifier(samples,fixedData.ClassesValue.Length,columnsTypes);
 
-            var className = algorithm.Compute(data.ToList()[2]);
-            int missed=0;
+            var dataRow = data.ToList()[2];
 
-            for (int index = 0; index < 50;index++ )
+            var className = algorithm.Compute(dataRow);
+            var classId = algorithm1.Compute(fixedData.GetSample(dataRow));
+            
+            var className1 = fixedData.ClassesValue[classId];
+
+            int missed = 0;
+
+            for (int index = 0; index < 50; index++)
             {
                 var row = data.ToList()[index];
                 var estimatedClassName = algorithm.Compute(row);
@@ -92,6 +104,24 @@ namespace TestApplication
             }
         }
 
+        private static void TestSentimentAnalysis()
+        {
+
+            var messageValue =
+               "@switchfoot http://twitpic.com/2y1zl - Awww, that's a bummer.  You shoulda got David Carr of Third Day to do it. ;D";
+
+
+            var message = NaiveBayesSentimentAnalysis.SplitToWords(messageValue);
+
+            string[] sentences = Regex.Split(messageValue, @"(?<=[.!?])\s+(?=\p{Lt})");
+
+            var data1 = Regex.Split(sentences[0], @"\W+");
+
+            var data =
+                LoadDataFromfCSV(
+                    @"C:\Users\IBM_ADMIN\Downloads\trainingandtestdata\training.1600000.processed.noemoticon.csv", ",",
+                    false,false);
+        }
 
         private static void Test()
         {
@@ -137,12 +167,13 @@ namespace TestApplication
             }
         }
 
-        public static TableData LoadDataFromfCSV(string fileName)
+        public static TableData LoadDataFromfCSV(string fileName, string delimeter = null, bool hasHeaderRecord = true, bool ignoreQuotes = true)
         {
-            var configuration = new CsvHelper.Configuration.CsvConfiguration();
-            configuration.Delimiter = "\t";
+            var configuration = new CsvConfiguration();
+            configuration.Delimiter = delimeter ?? "\t";
             configuration.HasExcelSeparator = false;
-            configuration.IgnoreQuotes = true;
+            configuration.IgnoreQuotes = ignoreQuotes;
+            configuration.HasHeaderRecord = hasHeaderRecord;
             configuration.QuoteNoFields = true;
             using (var reader = new CsvReader(new StreamReader(fileName), configuration))
             {
@@ -154,17 +185,28 @@ namespace TestApplication
                 while (reader.Read())
                 {
 
-                    if (index == 0)
+                    if (index == 0 )
                     {
-                        headers = reader.FieldHeaders;
+                        if (hasHeaderRecord)
+                        {
+                            headers = reader.FieldHeaders;
+                        }
+                        else
+                        {
+                            headers = new string[reader.CurrentRecord.Length];
+                            for (int column = 0; column < headers.Length; column++)
+                            {
+                                headers[column] = "Column" + column;
+                            }
+                                
+                        }
 
                         for (var columnIndex = 0; columnIndex < headers.Length; columnIndex++)
                         {
                             var columnName = headers[columnIndex];
                             data.AddAttribute(columnName);
                         }
-                        index++;
-                        continue;
+                        index++;                        
                     }
 
 

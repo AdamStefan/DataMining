@@ -14,6 +14,6 @@ namespace DataMining
         bool Contains(IDataRow dataRow);
         bool Remove(IDataRow row);
         void RemoveAt(int index);
-        int Count { get; }
+        int Count { get; }        
     }
 }
