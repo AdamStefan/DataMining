@@ -61,6 +61,7 @@ namespace SentimentAnalysis.Presentation
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
+            // training set was loaded from http://cs.stanford.edu/people/alecmgo/trainingandtestdata.zip
             pnlTextBox.IsEnabled = false;
             var data =
                 LoadDataFromfCSV(
