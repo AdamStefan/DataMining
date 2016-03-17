@@ -7,7 +7,7 @@ using CsvHelper;
 using CsvHelper.Configuration;
 using DataMining;
 using DataMining.DecisionTrees;
-using TestApplication.SentimentAnalysis;
+
 
 namespace TestApplication
 {
@@ -18,7 +18,7 @@ namespace TestApplication
 
             Tools.Test();
 
-            TestSentimentAnalysis();
+           
             var data = LoadDataFromfCSV("Data.csv");
 
             TestNaiveBayes();
@@ -102,38 +102,7 @@ namespace TestApplication
                 }
 
             }
-        }
-
-        private static void TestSentimentAnalysis()
-        {
-
-            //var messageValue =
-            //   "@switchfoot http://twitpic.com/2y1zl - Awww, that's a bummer.  You shoulda got David Carr of Third Day to do it. ;D";
-
-
-           // var message = NaiveBayesSentimentAnalysis.SplitToWords(messageValue);
-
-            //string[] sentences = Regex.Split(messageValue, @"(?<=[.!?])\s+(?=\p{Lt})");
-
-            //var data1 = Regex.Split(sentences[0], @"\W+");
-
-            var data =
-                LoadDataFromfCSV(
-                    @"C:\Users\IBM_ADMIN\Downloads\trainingandtestdata\training.1600000.processed.noemoticon.csv", ",",
-                    false, false, new[] {0, 5}, 0);
-
-            var count = data.Count;
-            var itemsToTrain = data.Select(item => new Tuple<string, string>((string)item["Column1"], item.Class));
-
-            var naiveBayesSentimentAnalysis = new NaiveBayesSentimentAnalysis();
-            naiveBayesSentimentAnalysis.Train(itemsToTrain, count - 1);
-            var ret = naiveBayesSentimentAnalysis.Compute("I hate you");
-            var ret1 = naiveBayesSentimentAnalysis.Compute("I love you");
-
-            var ret21 = naiveBayesSentimentAnalysis.Compute("But have been tied up in a customer issue, so need further discussions on what next");
-            var ret3 = naiveBayesSentimentAnalysis.Compute("Only thing at the moment is we are going to end your teams involvement on Cafe project ");
-
-        }
+        }        
 
         private static void Test()
         {

@@ -2,11 +2,10 @@
 using System.IO;
 using System.Text.RegularExpressions;
 
-namespace TestApplication.SentimentAnalysis
+namespace SentimentAnalysis
 {
     public class LexiconBasedSentimentAnalysis
     {        
-
         #region Methods
 
         public double Compute(string sentence)
@@ -34,7 +33,7 @@ namespace TestApplication.SentimentAnalysis
                 }
             }
 
-            var sentenceWords = Regex.Split(sentence, @"\W+");
+            var sentenceWords = TextParser.SplitToWords(sentence);
 
             double positiveRatio = 0.0;
             double totalSum = 0.0;

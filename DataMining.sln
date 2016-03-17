@@ -5,6 +5,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataMining", "DataMining\Da
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApplication", "TestApplication\TestApplication.csproj", "{75228994-2B58-48D7-B4EE-1090FB8571BD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SentimentAnalysis", "SentimentAnalysis\SentimentAnalysis.csproj", "{4D13128C-CE14-45A6-9F11-4D1A5FEC2217}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SentimentAnalysis.Presentation", "SentimentAnalysis.Presentation\SentimentAnalysis.Presentation.csproj", "{6C6EAE10-1B63-4CF7-9BB8-D34AD96128C0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,6 +23,14 @@ Global
 		{75228994-2B58-48D7-B4EE-1090FB8571BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{75228994-2B58-48D7-B4EE-1090FB8571BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{75228994-2B58-48D7-B4EE-1090FB8571BD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4D13128C-CE14-45A6-9F11-4D1A5FEC2217}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D13128C-CE14-45A6-9F11-4D1A5FEC2217}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D13128C-CE14-45A6-9F11-4D1A5FEC2217}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D13128C-CE14-45A6-9F11-4D1A5FEC2217}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6C6EAE10-1B63-4CF7-9BB8-D34AD96128C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6C6EAE10-1B63-4CF7-9BB8-D34AD96128C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6C6EAE10-1B63-4CF7-9BB8-D34AD96128C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6C6EAE10-1B63-4CF7-9BB8-D34AD96128C0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
