@@ -9,18 +9,29 @@ namespace DataMining
     {
         private readonly IDistribution[,] _distribution;
         private readonly IDistribution _classesProbablityDistribution;        
-        private readonly int _classes;        
+        private readonly int _classes;
 
         public NaiveBayesClassifier(DataSample[] samples, int classes, ColumnDataType[] columnDataTypes)
-        {                                 
+        {
             _classes = classes;
 
             _distribution = new IDistribution[classes, columnDataTypes.Length];
-            _classesProbablityDistribution = new CategoricalDistribution(samples.Select(item => item.ClassId).ToArray(), classes);
+            
+            _classesProbablityDistribution = new CategoricalDistribution(
+                samples.Select(item => item.ClassId).ToArray(), classes);
+            var splitDataPerClass = SplitDataPerClass(samples, _classes, columnDataTypes.Length);
+
+            var groups = GetClassGroups(samples, _classes);
 
             for (int index = 0; index < columnDataTypes.Length; index++)
-            {               
-                var values = GetDataPerClass(samples, _classes, index);
+            {
+                //var values = GetDataPerClass(samples, _classes, index);
+                Double[][] values = new double[classes][];
+                for (int classIndex = 0; classIndex < classes; classIndex++)
+                {
+                    values[classIndex] = splitDataPerClass[index, classIndex];
+                }
+                //var values = splitDataPerClass[index,_]
                 if (values.All(item => item == null))
                 {
                     continue;
@@ -28,19 +39,55 @@ namespace DataMining
 
                 for (int classIndex = 0; classIndex < classes; classIndex++)
                 {
-                    if (columnDataTypes[index] == ColumnDataType.Continuous)
+                    var itemsOnClass = values[classIndex] ?? new double[0];
+
+                    if (!columnDataTypes[index].IsDiscrete)
                     {
-                        _distribution[classIndex, index] = new GaussianDistribution(values[classIndex]);
+                        _distribution[classIndex, index] = new GaussianDistribution(itemsOnClass);
                     }
                     else
                     {
+
                         _distribution[classIndex, index] =
-                            new CategoricalDistribution(values[classIndex].Select(Convert.ToInt32).ToArray());
+                            new CategoricalDistribution(itemsOnClass.Select(Convert.ToInt32).ToArray(),
+                                columnDataTypes[index].NumberOfCategories, groups[classIndex]);
                     }
                 }
-
             }
+        }
 
+        public Double[,][] SplitDataPerClass(DataSample[] samples, int classes, int columns)
+        {
+            var retLists = new List<Double>[columns, classes];
+            var dataRet = new double[columns, classes][];
+
+
+            for (int index = 0; index < samples.Length; index++)
+            {
+                var sample = samples[index];
+                foreach (var datapoint in sample.DataPoints)
+                {
+
+                    if (retLists[datapoint.ColumnId, sample.ClassId] == null)
+                    {
+                        retLists[datapoint.ColumnId, sample.ClassId] = new List<double>();
+                    }
+
+                    retLists[datapoint.ColumnId, sample.ClassId].Add(datapoint.Value);
+
+                }
+            }
+            for (int columnIndex = 0; columnIndex < columns; columnIndex++)
+            {
+                for (int index = 0; index < classes; index++)
+                {
+                    if (retLists[columnIndex, index] != null)
+                    {
+                        dataRet[columnIndex, index] = retLists[columnIndex, index].ToArray();
+                    }
+                }
+            }
+            return dataRet;
         }
 
         public Double[][] GetDataPerClass(DataSample[] samples, int classes, int columnId)
@@ -74,6 +121,18 @@ namespace DataMining
             }
             return dataRet;
 
+        }
+
+        public int[] GetClassGroups(DataSample[] samples,int classes)
+        {
+            var ret = new int[classes];
+
+            for (int index = 0; index < samples.Length; index++)
+            {
+                ret[samples[index].ClassId] ++;
+            }
+
+            return ret;
         }
 
         public int Compute(DataSample sample)

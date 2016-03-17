@@ -15,8 +15,8 @@ namespace TestApplication
     {
         private static void Main(string[] args)
         {
-            
-            // Tools.Test();
+
+            Tools.Test();
 
             TestSentimentAnalysis();
             var data = LoadDataFromfCSV("Data.csv");
@@ -107,20 +107,32 @@ namespace TestApplication
         private static void TestSentimentAnalysis()
         {
 
-            var messageValue =
-               "@switchfoot http://twitpic.com/2y1zl - Awww, that's a bummer.  You shoulda got David Carr of Third Day to do it. ;D";
+            //var messageValue =
+            //   "@switchfoot http://twitpic.com/2y1zl - Awww, that's a bummer.  You shoulda got David Carr of Third Day to do it. ;D";
 
 
-            var message = NaiveBayesSentimentAnalysis.SplitToWords(messageValue);
+           // var message = NaiveBayesSentimentAnalysis.SplitToWords(messageValue);
 
-            string[] sentences = Regex.Split(messageValue, @"(?<=[.!?])\s+(?=\p{Lt})");
+            //string[] sentences = Regex.Split(messageValue, @"(?<=[.!?])\s+(?=\p{Lt})");
 
-            var data1 = Regex.Split(sentences[0], @"\W+");
+            //var data1 = Regex.Split(sentences[0], @"\W+");
 
             var data =
                 LoadDataFromfCSV(
                     @"C:\Users\IBM_ADMIN\Downloads\trainingandtestdata\training.1600000.processed.noemoticon.csv", ",",
-                    false,false);
+                    false, false, new[] {0, 5}, 0);
+
+            var count = data.Count;
+            var itemsToTrain = data.Select(item => new Tuple<string, string>((string)item["Column1"], item.Class));
+
+            var naiveBayesSentimentAnalysis = new NaiveBayesSentimentAnalysis();
+            naiveBayesSentimentAnalysis.Train(itemsToTrain, count - 1);
+            var ret = naiveBayesSentimentAnalysis.Compute("I hate you");
+            var ret1 = naiveBayesSentimentAnalysis.Compute("I love you");
+
+            var ret21 = naiveBayesSentimentAnalysis.Compute("But have been tied up in a customer issue, so need further discussions on what next");
+            var ret3 = naiveBayesSentimentAnalysis.Compute("Only thing at the moment is we are going to end your teams involvement on Cafe project ");
+
         }
 
         private static void Test()
@@ -167,7 +179,8 @@ namespace TestApplication
             }
         }
 
-        public static TableData LoadDataFromfCSV(string fileName, string delimeter = null, bool hasHeaderRecord = true, bool ignoreQuotes = true)
+        public static TableData LoadDataFromfCSV(string fileName, string delimeter = null, bool hasHeaderRecord = true,
+            bool ignoreQuotes = true, int[] columnIndexes = null, int classIndex=-1)
         {
             var configuration = new CsvConfiguration();
             configuration.Delimiter = delimeter ?? "\t";
@@ -180,41 +193,44 @@ namespace TestApplication
 
                 var data = new TableData();
                 var index = 0;
-                string[] headers = null;
 
                 while (reader.Read())
                 {
 
-                    if (index == 0 )
+                    if (index == 0)
                     {
-                        if (hasHeaderRecord)
+                        var noOfAttributes = hasHeaderRecord ? reader.FieldHeaders.Length : reader.CurrentRecord.Length;
+
+                        if (columnIndexes == null)
                         {
-                            headers = reader.FieldHeaders;
-                        }
-                        else
-                        {
-                            headers = new string[reader.CurrentRecord.Length];
-                            for (int column = 0; column < headers.Length; column++)
+                            columnIndexes = new int[noOfAttributes];
+                            for (var j = 0; j < columnIndexes.Length; j++)
                             {
-                                headers[column] = "Column" + column;
+                                columnIndexes[j] = j;
                             }
-                                
                         }
 
-                        for (var columnIndex = 0; columnIndex < headers.Length; columnIndex++)
+
+                        for (int column = 0; column < columnIndexes.Length; column++)
                         {
-                            var columnName = headers[columnIndex];
+                            var columnName = column == classIndex
+                                ? "Class"
+                                : hasHeaderRecord
+                                    ? reader.FieldHeaders[columnIndexes[column]]
+                                    : "Column" + column;
                             data.AddAttribute(columnName);
                         }
-                        index++;                        
+
+                        index++;
                     }
 
 
                     var row = data.NewRow();
-                    for (var columnIndex = 0; columnIndex < headers.Length; columnIndex++)
+                    var attributes = data.Attributes.ToArray();
+                    for (var columnIndex = 0; columnIndex < columnIndexes.Length; columnIndex++)
                     {
-                        var columnName = headers[columnIndex];
-                        row[columnName] = reader.GetField(columnIndex);
+                        var columnName = attributes[columnIndex];
+                        row[columnName] = reader.GetField(columnIndexes[columnIndex]);
                     }
                     data.AddRow(row);
 

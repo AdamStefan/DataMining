@@ -23,8 +23,8 @@ namespace DataMining
         #region Properties
 
         public bool IsDiscreteColumn(int column)
-        {            
-            return ColumnDataTypes[column] == ColumnDataType.Discrete;
+        {
+            return ColumnDataTypes[column].IsDiscrete;
         }
 
         public ColumnDataType[] ColumnDataTypes { get; private set; }
@@ -44,7 +44,7 @@ namespace DataMining
             return (int)_data[rowIndex, _classIndex];
         }
 
-        #endregion      
+        #endregion
 
         public static TableFixedData FromTableData(ITableData tableData)
         {
@@ -85,13 +85,13 @@ namespace DataMining
 
                     if (attribute == TableData.ClassAttributeName)
                     {
-                        if (!classes.ContainsKey((string)currentValue))
+                        if (!classes.ContainsKey((string) currentValue))
                         {
-                            classes.Add((string)currentValue, currentClassesIndex);
+                            classes.Add((string) currentValue, currentClassesIndex);
                             currentClassesIndex++;
                         }
 
-                        currentValue = classes[(string)currentValue];
+                        currentValue = classes[(string) currentValue];
                     }
 
                     tableFixedData._data[index, columnIndex] = currentValue;
@@ -103,24 +103,47 @@ namespace DataMining
             {
                 tableFixedData.ClassesValue[item.Value] = item.Key;
             }
-            tableFixedData._labelsDictionary = new Dictionary<string, int>[tableFixedData.Attributes.Length];
+            tableFixedData.BuildSymbols();
 
-            tableFixedData.ColumnDataTypes = new ColumnDataType[tableFixedData.Attributes.Length];
-            for (int columnIndex = 0; columnIndex < tableFixedData.Attributes.Length; columnIndex++)
+            return tableFixedData;
+        }
+
+        private void BuildSymbols()
+        {
+            _labelsDictionary = new Dictionary<string, int>[Attributes.Length];
+
+            ColumnDataTypes = new ColumnDataType[Attributes.Length];
+
+            var noOfRows = _data.GetLength(0);
+
+            for (int index = 0; index < Attributes.Length; index++)
             {
-                if (tableFixedData.Attributes[columnIndex] == TableData.ClassAttributeName)
+                if (_labelsDictionary[index] == null)
                 {
-                    tableFixedData.ColumnDataTypes[columnIndex] = ColumnDataType.Discrete;
+                    _labelsDictionary[index] = new Dictionary<string, int>();
+                }
+
+                if (_data[0, index].IsNumeric())
+                {
+                    ColumnDataTypes[index] = new ColumnDataType();
                     continue;
                 }
 
-                var currentValue = tableFixedData._data[0, columnIndex];
-                tableFixedData.ColumnDataTypes[columnIndex] = currentValue.IsNumeric()
-                    ? ColumnDataType.Continuous
-                    : ColumnDataType.Discrete;
-            }
+                var symbols = _labelsDictionary[index];
+                var newSymbol = 0;
 
-            return tableFixedData;
+                for (int rowIndex = 0; rowIndex < noOfRows; rowIndex++)
+                {
+                    var currentValue = _data[rowIndex, index].ToString();
+                    if (!symbols.ContainsKey(currentValue))
+                    {
+                        symbols.Add(currentValue, newSymbol);
+                        newSymbol++;
+                    }                    
+                }
+                ColumnDataTypes[index] = new ColumnDataType {IsDiscrete = true, NumberOfCategories = newSymbol};
+            }
+                                              
         }
 
         public static DataSample[] ToSample(TableFixedData tableFixedData)

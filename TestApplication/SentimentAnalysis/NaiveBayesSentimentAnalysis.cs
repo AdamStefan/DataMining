@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using DataMining;
 
@@ -13,28 +14,38 @@ namespace TestApplication.SentimentAnalysis
         private Dictionary<string, int> _wordDictionary = new Dictionary<string, int>();
         private readonly HashSet<string> _negationWords = new HashSet<string> {"not", "nor", "no"};
         private ColumnDataType[] _columnsDataTypes;
+        private Dictionary<string,int > _classes;
 
         #endregion
 
         #region Methods
 
-        public void Train(Tuple<string, Boolean>[] trainingSet)
+        public void Train(IEnumerable<Tuple<string, string>> trainingSet, int count)
         {
             _wordDictionary = new Dictionary<string, int>();
+            _classes = new Dictionary<string, int>();
 
-            DataSample[] samples = new DataSample[trainingSet.Length];
+            DataSample[] samples = new DataSample[count];
             int wordId = 0;
-
-            for (var trainingItemIndex = 0; trainingItemIndex < trainingSet.Length; trainingItemIndex++)
-            {
-                var trainingItem = trainingSet[trainingItemIndex];
+            int classId = 0;
+            var trainingItemIndex = 0;
+            trainingSet = trainingSet.Take(count);
+            foreach (var trainingItem in trainingSet)
+            {                
+                //var trainingItem = trainingSet[trainingItemIndex];
 
                 //string[] sentences = Regex.Split(trainingItem.Item1, @"(?<=[.!?])\s+(?=\p{Lt})");
                 string[] sentences = {trainingItem.Item1};
+                var classValue = trainingItem.Item2;
+                if (!_classes.ContainsKey(classValue))
+                {
+                    _classes.Add(classValue, classId);
+                    classId++;
+                }
 
                 var dataSample = new DataSample
                 {
-                    ClassId = !trainingItem.Item2 ? 0 : 1
+                    ClassId = _classes[classValue]
                 };
 
                 var sampleDataPoints = new List<DataPoint>();
@@ -42,6 +53,7 @@ namespace TestApplication.SentimentAnalysis
                 foreach (var sentence in sentences)
                 {
                     //var sentenceWords = Regex.Split(sentence, @"\W+");
+                    
                     var sentenceWords = SplitToWords(sentence);
                     var isNegated = false;
                     for (int index = 0; index < sentenceWords.Count; index++)
@@ -73,17 +85,19 @@ namespace TestApplication.SentimentAnalysis
                                 wordId++;
                             }
 
-                            sampleDataPoints.Add(new DataPoint {ColumnId = _wordDictionary[currentWord]});
+                            sampleDataPoints.Add(new DataPoint {ColumnId = _wordDictionary[currentWord], Value = 1});
                         }
                     }
                 }
                 dataSample.DataPoints = sampleDataPoints.ToArray();
                 samples[trainingItemIndex] = dataSample;
+
+                trainingItemIndex++;
             }
             _columnsDataTypes = new ColumnDataType[wordId];
             for (var index = 0; index < wordId; index++)
             {
-                _columnsDataTypes[index] = ColumnDataType.Discrete;
+                _columnsDataTypes[index] = new ColumnDataType {IsDiscrete = true, NumberOfCategories = 2};
             }
 
             _naiveBayesClassifier = new NaiveBayesClassifier(samples, 2, _columnsDataTypes);
@@ -109,7 +123,7 @@ namespace TestApplication.SentimentAnalysis
                 }
                 else if (currentChar == '\'')
                 {
-                    if (index > 0 && index < sentence.Length && Char.IsLetter(sentence[index - 1]) &&
+                    if (index > 0 && index < sentence.Length-1 && Char.IsLetter(sentence[index - 1]) &&
                         Char.IsLetter(sentence[index + 1]))
                     {
                         if (currentWordStartIndex < 0)
@@ -166,6 +180,7 @@ namespace TestApplication.SentimentAnalysis
                 }
             }
 
+            ProcessPart(sentence, ref currentWordStartIndex, ref currentWordLength, words);
             return words;
         }
 
@@ -200,7 +215,7 @@ namespace TestApplication.SentimentAnalysis
             var sample = new DataSample();
             var sampleDataPoints = new List<DataPoint>();
 
-            var sentenceWords = Regex.Split(sentence, @"\W+");
+            var sentenceWords = SplitToWords(sentence).ToArray();
             var isNegated = false;
 
             for (int index = 0; index < sentenceWords.Length; index++)
@@ -222,9 +237,9 @@ namespace TestApplication.SentimentAnalysis
                     }
 
 
-                    if (!_wordDictionary.ContainsKey(currentWord))
+                    if (_wordDictionary.ContainsKey(currentWord))
                     {
-                        sampleDataPoints.Add(new DataPoint {ColumnId = _wordDictionary[currentWord]});
+                        sampleDataPoints.Add(new DataPoint {ColumnId = _wordDictionary[currentWord],Value = 1});
                     }
 
                 }

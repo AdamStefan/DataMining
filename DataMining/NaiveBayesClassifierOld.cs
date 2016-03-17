@@ -50,7 +50,7 @@ namespace DataMining
                         for (int classIndex = 0; classIndex < data.ClassesValue.Length; classIndex++)
                         {
                             var categoryData = values[classIndex].Select(item => data.GetSymbol(item, index)).ToArray();
-                            _distribution[classIndex, index] = new CategoricalDistribution(categoryData);
+                            _distribution[classIndex, index] = new CategoricalDistribution(categoryData,categoryData.Length);
                         }
                     }
                 }

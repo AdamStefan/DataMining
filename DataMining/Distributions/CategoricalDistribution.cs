@@ -34,14 +34,15 @@ namespace DataMining.Distributions
         }
 
 
-        public CategoricalDistribution(int[] values)
-            : this(values, values.Max() + 1)
+        public CategoricalDistribution(int[] values, int totalNumberOfItems)
+            : this(values, values.Any() ? values.Max() + 1 : 0, totalNumberOfItems)
         {
         }
 
-        public CategoricalDistribution(int[] values, int categories)
+        public CategoricalDistribution(int[] values, int categories, int totalNumberOfItems)
         {
-            var freq = new int[categories];
+            var freq = new int[categories + 1];            
+
             for (int i = 0; i < values.Length; i++)
             {
                 if (values[i] >= categories)
@@ -54,14 +55,18 @@ namespace DataMining.Distributions
                 }
                 freq[values[i]]++;
             }
-            var count = (double) values.Length;
+
+            freq[categories] = totalNumberOfItems - values.Length;
+
+            var count = (double) totalNumberOfItems;
+
             _probabilities = freq.Select(item => item/count).ToArray();
             for (int i = 0; i < _probabilities.Length; i++)
             {
-                Expectation += (i+1)*_probabilities[i];
+                Expectation += (i + 1)*_probabilities[i];
             }
         }
-        
+
         #endregion
 
         #region Methods

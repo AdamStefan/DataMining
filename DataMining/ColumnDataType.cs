@@ -1,8 +1,8 @@
 namespace DataMining
 {
-    public enum ColumnDataType
+    public class ColumnDataType
     {
-        Discrete,
-        Continuous
+       public  bool IsDiscrete { get; set; }
+        public int NumberOfCategories { get; set; }        
     }
 }
