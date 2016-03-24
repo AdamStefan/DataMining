@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using DataMining;
 
 namespace SentimentAnalysis
@@ -51,9 +50,7 @@ namespace SentimentAnalysis
                 var sampleDataPoints = new List<DataPoint>();
 
                 foreach (var sentence in sentences)
-                {
-                    //var sentenceWords = Regex.Split(sentence, @"\W+");
-                    
+                {                                     
                     var sentenceWords = TextParser.SplitToWords(sentence);
                     var isNegated = false;
                     for (int index = 0; index < sentenceWords.Count; index++)

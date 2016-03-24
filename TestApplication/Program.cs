@@ -2,12 +2,10 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using CsvHelper;
 using CsvHelper.Configuration;
 using DataMining;
 using DataMining.DecisionTrees;
-
 
 namespace TestApplication
 {
@@ -15,7 +13,10 @@ namespace TestApplication
     {
         private static void Main(string[] args)
         {
-
+            TestSantander.TestData();
+            var asd = new StanfordLemmatizer();
+            asd.TokenizeAndLemmatize(@"Ana are mere 
+si pere");
             Tools.Test();
 
            

@@ -201,6 +201,10 @@ namespace DataMining.DecisionTrees
                 rows.Split(minsplitIndex)
                     .Select(item => new ComputeAttributeEntropyResult.Subset { Rows = item, Value = splitValue });
 
+            if (ret.EntropyValue<Double.MaxValue)
+            {
+
+            }
 
             return ret;
         }
@@ -263,6 +267,10 @@ namespace DataMining.DecisionTrees
 
                 lock (locker)
                 {
+                    if (minAttributeEntropyResult == null)
+                    {
+                        minAttributeEntropyResult = attributeEntropy;
+                    }
                     if (gain > maxGain)
                     {
                         maxGain = gain;
@@ -270,6 +278,25 @@ namespace DataMining.DecisionTrees
                     }
                 }
             });
+
+            //foreach (var attribute in attributesIndexes)
+            //{
+            //    var attributeEntropy = ComputeAttributeEntropy(dataRowsIndexes, attribute);
+            //    var gain = (entropy - attributeEntropy.EntropyValue) * attributeEntropy.KnownValues / dataRowsIndexes.Count;
+
+            //    lock (locker)
+            //    {
+            //        if (minAttributeEntropyResult == null)
+            //        {
+            //            minAttributeEntropyResult = attributeEntropy;
+            //        }
+            //        if (gain > maxGain)
+            //        {
+            //            maxGain = gain;
+            //            minAttributeEntropyResult = attributeEntropy;
+            //        }
+            //    }
+            //}
 
             return new Tuple<double, ComputeAttributeEntropyResult>(maxGain, minAttributeEntropyResult);
         }
@@ -321,6 +348,7 @@ namespace DataMining.DecisionTrees
             BuildConditionalNodes(listRows, attributes, conditionalTree.Root);
             return conditionalTree;
         }
+     
 
         private void BuildConditionalNodesRecursive(IList<int> rows, IList<int> attributesIndexes,
             DecisionTree.DecisionNode parentNode)

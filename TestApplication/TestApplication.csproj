@@ -37,7 +37,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="ejml-0.23, Version=0.23.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Stanford.NLP.Parser.3.6.0.0\lib\ejml-0.23.dll</HintPath>
+      <HintPath>..\packages\Stanford.NLP.CoreNLP.3.6.0.0\lib\ejml-0.23.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="IKVM.AWT.WinForms, Version=8.1.5717.0, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
@@ -152,12 +152,24 @@
       <HintPath>..\packages\IKVM.8.1.5717.0\lib\IKVM.Runtime.JNI.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="slf4j-api, Version=1.7.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Stanford.NLP.Parser.3.6.0.0\lib\slf4j-api.dll</HintPath>
+    <Reference Include="javax.json, Version=1.0.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Stanford.NLP.CoreNLP.3.6.0.0\lib\javax.json.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="stanford-parser, Version=3.6.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Stanford.NLP.Parser.3.6.0.0\lib\stanford-parser.dll</HintPath>
+    <Reference Include="joda-time, Version=2.9.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Stanford.NLP.CoreNLP.3.6.0.0\lib\joda-time.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="jollyday, Version=0.4.7.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Stanford.NLP.CoreNLP.3.6.0.0\lib\jollyday.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="slf4j-api, Version=1.7.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Stanford.NLP.CoreNLP.3.6.0.0\lib\slf4j-api.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="stanford-corenlp-3.6.0, Version=3.6.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Stanford.NLP.CoreNLP.3.6.0.0\lib\stanford-corenlp-3.6.0.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -167,10 +179,16 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="xom, Version=1.2.10.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Stanford.NLP.CoreNLP.3.6.0.0\lib\xom.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="StringLemmatizer.cs" />
+    <Compile Include="TestSantander.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

@@ -62,11 +62,18 @@ namespace SentimentAnalysis.Presentation
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             // training set was loaded from http://cs.stanford.edu/people/alecmgo/trainingandtestdata.zip
+
+            //C:\Users\IBM_ADMIN\Downloads\trainingandtestdata
             pnlTextBox.IsEnabled = false;
             var data =
                 LoadDataFromfCSV(
                     @"C:\Users\StefanAlexandru\Downloads\trainingandtestdata\training.1600000.processed.noemoticon.csv", ",",
                     false, false, new[] { 0, 5 }, 0);
+
+            //var data =
+            //    LoadDataFromfCSV(
+            //        @"C:\Users\IBM_ADMIN\Downloads\trainingandtestdata\training.1600000.processed.noemoticon.csv", ",",
+            //        false, false, new[] { 0, 5 }, 0);
 
             var count = data.Count;
             var itemsToTrain = data.Select(item => new Tuple<string, string>((string)item["Column1"], item.Class));

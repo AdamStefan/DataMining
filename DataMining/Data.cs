@@ -58,9 +58,7 @@ namespace DataMining
 
         public TableData()
         {
-            var column = new Attribute(ClassAttributeName, typeof (string));
-            var dataColumnn = new IndexedDataColumn(column);
-            _data[ClassAttributeName] = dataColumnn;
+            
         }
 
         #endregion
@@ -76,7 +74,17 @@ namespace DataMining
 
         public bool AddAttribute(string attributeName)
         {
-            return AddAttribute(attributeName, typeof (object));
+            if (attributeName == ClassAttributeName)
+            {
+                var column = new Attribute(ClassAttributeName, typeof (string));
+                var dataColumnn = new IndexedDataColumn(column);
+                _data[ClassAttributeName] = dataColumnn;
+                return true;
+            }
+            else
+            {
+                return AddAttribute(attributeName, typeof (object));
+            }
         }
 
         private bool AddAttribute(string attributeName, Type attributeType)
