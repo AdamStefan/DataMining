@@ -3,6 +3,7 @@ using CsvHelper.Configuration;
 using DataMining;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -64,6 +65,7 @@ namespace SentimentAnalysis.Presentation
             // training set was loaded from http://cs.stanford.edu/people/alecmgo/trainingandtestdata.zip
 
             //C:\Users\IBM_ADMIN\Downloads\trainingandtestdata
+            this.txtNumberOfItems.Text = string.Empty;
             pnlTextBox.IsEnabled = false;
             var data =
                 LoadDataFromfCSV(
@@ -79,6 +81,11 @@ namespace SentimentAnalysis.Presentation
             var itemsToTrain = data.Select(item => new Tuple<string, string>((string)item["Column1"], item.Class));
         
             _naiveBayesSentimentAnalysis.Train(itemsToTrain, count - 1);
+
+            this.txtNumberOfItems.Text = string.Format("Trained finished on a {0} items", count);
+
+            
+
             pnlTextBox.IsEnabled = true;
         }
 
@@ -152,6 +159,46 @@ namespace SentimentAnalysis.Presentation
             {
                 txtMessage.Foreground = Brushes.Black;
             }
+        }
+
+        private double DataTest()
+        {
+            var dataTest =
+                LoadDataFromfCSV(
+                    @"C:\Users\StefanAlexandru\Downloads\trainingandtestdata\testdata.manual.2009.06.14.csv", ",",
+                    false, false, new[] { 0, 5 }, 0);
+            var items = 0;
+            var missedItems = 0;
+            foreach (var item in dataTest)
+            {
+                if (item.Class == "4" || item.Class == "0")
+                {
+                    var value = item.Class == "4" ? 1 : 0;
+                    var estimatedValue = _naiveBayesSentimentAnalysis.Compute(item["Column1"].ToString());
+                    if (estimatedValue != value)
+                    {
+                        missedItems++;
+                    }
+                    items++;
+                }
+
+            }
+            var percentageResults = (1 - (((double)missedItems) / ((double)items))); ;
+            var sb = new StringBuilder();
+            sb.AppendLine(string.Format("Total tests :{0}",items));
+            sb.AppendLine(string.Format("Passed :{0}", items - missedItems));
+            sb.AppendLine(string.Format("Failed :{0}", missedItems));
+            sb.AppendLine(string.Format("Accurracy  :{0}", percentageResults.ToString("P", CultureInfo.InvariantCulture)));
+            efficientyPercentage.Text = sb.ToString();
+
+            return percentageResults;
+            
+        }
+
+        private void ButtonTest_Click(object sender, RoutedEventArgs e)
+        {
+            var percentageResults = DataTest();
+            
         }
 
     }

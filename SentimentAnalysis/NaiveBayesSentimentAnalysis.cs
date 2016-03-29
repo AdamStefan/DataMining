@@ -31,10 +31,8 @@ namespace SentimentAnalysis
             trainingSet = trainingSet.Take(count);
             foreach (var trainingItem in trainingSet)
             {                
-                //var trainingItem = trainingSet[trainingItemIndex];
-
-                //string[] sentences = Regex.Split(trainingItem.Item1, @"(?<=[.!?])\s+(?=\p{Lt})");
-                string[] sentences = {trainingItem.Item1};
+                
+                string[] sentences = { trainingItem.Item1 };
                 var classValue = trainingItem.Item2;
                 if (!_classes.ContainsKey(classValue))
                 {

@@ -13,10 +13,20 @@ namespace TestApplication
     {
         private static void Main(string[] args)
         {
+
+            var text = "asdas aaaaaa asdbbbb asd1111 ttttt";
+
+            var multipleCharacterRegex = new System.Text.RegularExpressions.Regex("(.)\\1{1,}");
+            string pattern = "(.)\\1{1,}";
+            string replacePattern = "$1$1";
+            var retsss = multipleCharacterRegex.Replace(text, replacePattern);
+
+
+
             TestSantander.TestData();
-            var asd = new StanfordLemmatizer();
-            asd.TokenizeAndLemmatize(@"Ana are mere 
-si pere");
+            //var asd = new StanfordLemmatizer();
+//            asd.TokenizeAndLemmatize(@"Ana are mere 
+//si pere");
             Tools.Test();
 
            
