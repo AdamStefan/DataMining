@@ -188,15 +188,47 @@ namespace DataMining.DecisionTrees
 
         public TreeOptions Options { get; set; }
 
+        private class NodeLossRate
+        {
+            public DecisionNode Node {get;set;}
+            public double LossRate { get; set; }
+        }
+
         public void Prune()
         {
             var listTerminalNodes = new List<DecisionNode>();
             Prune(Root, listTerminalNodes);
-            //foreach (var VARIABLE in COLLECTION)
+            if (Options.MaxNumberOfTerminalNodes >= listTerminalNodes.Count)
+            {
+                return;
+            }
+
+
+            var parentNodes = listTerminalNodes.Select(item => item.Parent).Distinct().Select(node => new NodeLossRate { Node = node, LossRate = 0 }).ToList();
+
+            for (int index = 0; index < parentNodes.Count; index++)
+            {
+                var node = parentNodes[index];
+                double childrenmissedValues = 0;
+                foreach (var child in node.Node.Children)
+                {
+                    childrenmissedValues += (child.Statistics.DatasetLength * (1 - child.Statistics.Confidence));
+                }
+                node.LossRate = childrenmissedValues - (node.Node.Statistics.DatasetLength * (1 - node.Node.Statistics.Confidence));
+            }
+            parentNodes = parentNodes.OrderByDescending(item => item.LossRate).ToList();
+
+            // to be reviewed
+            //while (listTerminalNodes.Count > Options.MaxNumberOfTerminalNodes && parentNodes.Count > 0)
             //{
-                
-            //    asd
+            //    foreach (var child in parentNodes[0].Node.Children)
+            //    {
+            //        listTerminalNodes.Remove(child);
+            //    }
+            //    parentNodes[0].Node.Children = new DecisionNode[] { };
+            //    parentNodes.RemoveAt(0);
             //}
+
         }
 
         private void Prune(DecisionNode node, List<DecisionNode> terminalNodes)

@@ -52,7 +52,6 @@
     <Compile Include="DecisionTrees\C45AlgorithmDataOptimized.cs" />
     <Compile Include="Data.cs" />
     <Compile Include="DecisionTrees\DecisionTree.cs" />
-    <Compile Include="DecisionTrees\Statistics.cs" />
     <Compile Include="DecisionTrees\TreeOptions.cs" />
     <Compile Include="Distributions\CategoricalDistribution.cs" />
     <Compile Include="Distributions\GaussianDistribution.cs" />
@@ -67,6 +66,7 @@
     <Compile Include="NaiveBayesClassifierOld.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="DataSample.cs" />
+    <Compile Include="DecisionTrees\Statistics.cs" />
     <Compile Include="TableFixedData.cs" />
     <Compile Include="Tools.cs" />
   </ItemGroup>
