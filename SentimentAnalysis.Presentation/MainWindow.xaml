@@ -5,12 +5,34 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
             <RowDefinition></RowDefinition>
             <RowDefinition Height="Auto"></RowDefinition>
         </Grid.RowDefinitions>
-        <Button Click="Button_Click" Grid.Row="0">Start training</Button>
-        <StackPanel x:Name="pnlTextBox" Grid.Row="1" IsEnabled="False">
-            <TextBlock>Message</TextBlock>
+        
+        <GroupBox Grid.Row="1" Header="Training Info">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition></RowDefinition>
+                    <RowDefinition></RowDefinition>
+                </Grid.RowDefinitions>
+
+                <StackPanel Margin="10,2,0,0" Grid.Row="0" Orientation="Horizontal">
+                    <Button Width="100" Click="Button_Click" Grid.Row="0">Train</Button>
+                    <TextBlock x:Name="txtNumberOfItems"  Margin="40,4" />
+                </StackPanel>
+                
+                <StackPanel Margin="10,2,0,0" Grid.Row="1" Orientation="Horizontal">
+                    <Button VerticalAlignment="Top" Margin="0,2,0,0" MaxHeight="28" Width="100" x:Name="btnRunTests" Click="ButtonTest_Click" Grid.Row="2">Run Tests</Button>
+                    <TextBlock Margin="40,4" FontWeight="Bold"  x:Name="efficientyPercentage" Grid.Row="1" >
+                    </TextBlock>                  
+                </StackPanel>            
+            </Grid>
+        </GroupBox>
+        
+        <StackPanel x:Name="pnlTextBox" Grid.Row="3" IsEnabled="False">
+            <TextBlock>Write Message</TextBlock>
             <TextBox FontWeight="Bold"  FontSize="14" TextChanged="txtMessage_TextChanged"  x:Name="txtMessage" Height="200" AcceptsReturn="True"></TextBox>
         </StackPanel>      
 

@@ -1,5 +1,7 @@
-﻿using System;
+﻿using NHunspell;
+using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace SentimentAnalysis
 {
@@ -7,15 +9,61 @@ namespace SentimentAnalysis
     {
         
         private static readonly Lazy<StanfordLemmatizer>  Lemmatizer = new Lazy<StanfordLemmatizer>();
+        private static Hunspell _spell;
+        private  static Regex _multipleCharacterRegex = new Regex( "(.)\\1{1,}");
 
-        public static IList<string> SplitToWords(string sentence, bool lemmatize = true)
+        public static IList<string> SplitToWords(string sentence, bool correct = false)
         {
-            if (lemmatize)
+            //if (lemmatize)
+            //{
+            //    return DoLemmatize(sentence);
+            //}
+            var words = SplitToWordsNoLemmatize(sentence);
+
+            if (_spell == null)
             {
-                return DoLemmatize(sentence);
+                _spell = new Hunspell("en_us.aff", "en_us.dic");
             }
-            return SplitToWordsNoLemmatize(sentence);
+            var stems = new List<string>();
+            foreach (var word in words)
+            {
+                var tmpWord = _multipleCharacterRegex.Replace(word, "$1$1");
+                if (correct)
+                {
+                    var correctlySpelled = _spell.Spell(word);
+                    if (!correctlySpelled)
+                    {
+                        var tmp = _spell.Suggest(word);
+                        if (tmp != null && tmp.Count == 1)
+                        {
+                            tmpWord = tmp[0];
+                        }
+                    }
+                }
+
+                var wordStems = _spell.Stem(tmpWord);
+                if (wordStems.Count > 0)
+                {
+                    stems.AddRange(wordStems);
+                }
+                else
+                {
+                    stems.Add(word);
+                }
+
+            }
+
+            return stems;
         }
+
+        //private static IEnumerable<string> ProcessCustom(string word)
+        //{
+        //    if (word.ToLower == "im")
+        //    {
+        //        yield "i"
+        //    }
+        //}
+        
 
 
         public static List<List<string>> SplitToWords(IEnumerable<string> sentences, bool lemmatize = true)
@@ -146,6 +194,12 @@ namespace SentimentAnalysis
         private static List<List<string>> DoLemmatize(IEnumerable<string> sentences)
         {
             return Lemmatizer.Value.TokenizeAndLemmatize(sentences);
+        }
+
+        public static string ReplaceMoreThanTwoSameLetters(string text)
+        {            
+            return _multipleCharacterRegex.Replace(text, "$1$1");            
+           
         }
 
     }
