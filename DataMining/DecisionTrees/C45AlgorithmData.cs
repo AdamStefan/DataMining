@@ -5,16 +5,17 @@ using System.Linq;
 namespace DataMining.DecisionTrees
 {
     public class C45AlgorithmData
-    {             
-
-        private double ComputeEntropy(IEnumerable<IDataRow> dataRows, out bool sameClass)
+    {
+        TreeOptions Options { get; set; }
+        private Statistics ComputeStatistics(IEnumerable<IDataRow> dataRows)
         {
             var freq = new Dictionary<string, int>();
+            var statistics = new Statistics();
 
             var itemCount = 0;
 
             foreach (var row in dataRows)
-            {
+            {                
                 if (!freq.ContainsKey(row.Class))
                 {
                     freq.Add(row.Class, 0);
@@ -22,16 +23,28 @@ namespace DataMining.DecisionTrees
                 freq[row.Class]++;
                 itemCount++;
             }
-            sameClass = freq.Count == 1;
+            statistics.SameClass = freq.Count == 1;
             var sum = 0.0;
-
+            var mostFrequestValue = -1;
+            statistics.Classes = freq.Keys.ToArray();
+            statistics.Frequencies = freq.Values.ToArray();
+            int index = 0;
             foreach (var item in freq)
             {
+                if (item.Value > mostFrequestValue)
+                {
+                    mostFrequestValue = item.Value;
+                    statistics.MostFrequentClass = item.Key;
+                }
                 var val = ((double) item.Value)/itemCount;
                 sum += val*Math.Log(val, 2);
             }
 
-            return -sum;
+            statistics.Entropy = -sum;
+            statistics.DatasetLength = itemCount;
+            statistics.Confidence = mostFrequestValue/(double)itemCount;  
+
+            return statistics;
         }
 
         private bool IsUnknown(object value)
@@ -272,8 +285,8 @@ namespace DataMining.DecisionTrees
             foreach (var item in freq)
             {
                 var list = item.Value;
-                bool sameClass;
-                sum += (((double) list.Count)/itemCount)*ComputeEntropy(list, out sameClass);
+                var statistics = ComputeStatistics(list);
+                sum += (((double)list.Count) / itemCount) * statistics.Entropy;
             }
 
             ret.Subsets =
@@ -283,13 +296,14 @@ namespace DataMining.DecisionTrees
             return ret;
         }
 
-        private Tuple<double, ComputeAttributeEntropyResult> ComputeBestGain(IList<IDataRow> dataRows,
-            IList<string> attributes, out bool sameClass)
+        private Tuple<double, ComputeAttributeEntropyResult, Statistics> ComputeBestGain(IList<IDataRow> dataRows,
+            IList<string> attributes)
         {
-            var entropy = ComputeEntropy(dataRows, out sameClass);
-            if (sameClass)
+
+            var statistics = ComputeStatistics(dataRows);
+            if (statistics.SameClass)
             {
-                return new Tuple<double, ComputeAttributeEntropyResult>(double.MaxValue, null);
+                return new Tuple<double, ComputeAttributeEntropyResult, Statistics>(double.MaxValue, null, statistics);
             }
             var maxGain = Double.MinValue;
             ComputeAttributeEntropyResult minAttributeEntropyResult = null;
@@ -298,7 +312,8 @@ namespace DataMining.DecisionTrees
             foreach (var attribute in attributes)
             {
                 var attributeEntropy = ComputeAttributeEntropy(dataRows, attribute);
-                var gain = (entropy - attributeEntropy.EntropyValue)*attributeEntropy.KnownValues/dataRows.Count;
+                var gain = (statistics.Entropy - attributeEntropy.EntropyValue)*attributeEntropy.KnownValues/
+                           dataRows.Count;
 
                 if (gain > maxGain)
                 {
@@ -307,7 +322,8 @@ namespace DataMining.DecisionTrees
                 }
             }
 
-            return new Tuple<double, ComputeAttributeEntropyResult>(maxGain, minAttributeEntropyResult);
+            return new Tuple<double, ComputeAttributeEntropyResult, Statistics>(maxGain, minAttributeEntropyResult,
+                statistics);
         }
 
         private class ComputeAttributeEntropyResult
@@ -352,11 +368,15 @@ namespace DataMining.DecisionTrees
             {
                 return;
             }
-            bool sameClass;
-            var result = ComputeBestGain(rows, attributes, out sameClass);
-            if (sameClass)
+            
+            var result = ComputeBestGain(rows, attributes);
+            
+            var statistics = result.Item3;
+            parentNode.Statistics = statistics;
+
+            if (statistics.SameClass)
             {
-                parentNode.Class = rows.First().Class;
+                parentNode.Class = statistics.MostFrequentClass.ToString();
                 return;
             }
             var attributeResult = result.Item2;
@@ -368,6 +388,11 @@ namespace DataMining.DecisionTrees
 
             foreach (var subset in attributeResult.Subsets)
             {
+                if (subset.Rows.Count < Options.MinItemsOnNode)
+                {
+                    continue;
+                }
+
                 var node = new DecisionTree.DecisionNode
                 {
                     Condition = attributeResult.IsNumeric
@@ -375,8 +400,10 @@ namespace DataMining.DecisionTrees
                             ? DecisionTree.PredicateCondition.LessThanOrEqual
                             : DecisionTree.PredicateCondition.GreaterThan
                         : DecisionTree.PredicateCondition.Equal,
-                    ThreshHold = subset.Value,
-                    Attribute = attributeResult.Attribute
+                    ThreshHold = subset.Value,                    
+                    Attribute = attributeResult.Attribute,
+                    Depth = parentNode.Depth+1,
+                    Parent = parentNode
                 };
 
                 BuildConditionalNodesRecursive(subset.Rows, attributesList, node);

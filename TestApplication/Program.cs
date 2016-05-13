@@ -35,7 +35,7 @@ si pere");
             var watch2 = new Stopwatch();
 
 
-            var decisionalTree = algorithm.BuildConditionalTreeOptimized(fixedData);
+            var decisionalTree = algorithm.BuildConditionalTreeOptimized(fixedData, new TreeOptions());
 
             for (int index = 0; index < 50; index++)
             {
@@ -55,12 +55,12 @@ si pere");
             {
 
                 watch1.Start();
-                var ret = algorithm.BuildConditionalTree(data);
+                var ret = algorithm.BuildConditionalTree(data, new TreeOptions());
                 watch1.Stop();
 
 
                 watch2.Start();
-                var ret1 = algorithm.BuildConditionalTreeOptimized(fixedData);
+                var ret1 = algorithm.BuildConditionalTreeOptimized(fixedData, new TreeOptions());
                 watch2.Stop();
 
                 //var className = ret.GetClass(data.ToList()[8]);

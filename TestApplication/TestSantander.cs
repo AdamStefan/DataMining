@@ -20,7 +20,7 @@ namespace TestApplication
             //        false, false, new[] { 0, 5 }, 0);
             var algorithm = new C45Algorithm();
             var fixedData = TableFixedData.FromTableData(data);
-            var decisionalTree = algorithm.BuildConditionalTreeOptimized(fixedData);
+            var decisionalTree = algorithm.BuildConditionalTreeOptimized(fixedData, new TreeOptions() {MaxTreeDepth = 3,MinItemsOnNode = 50});
             var pseudocode = decisionalTree.ToPseudocode();
 
 

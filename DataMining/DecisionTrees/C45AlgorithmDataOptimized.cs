@@ -9,24 +9,63 @@ namespace DataMining.DecisionTrees
     {
         #region Fields
 
-
         private readonly TableFixedData _data;
+        private readonly TreeOptions _options;
 
         #endregion
 
         #region Instance
 
-        public C45AlgorithmDataOptimized(TableFixedData data)
+        public C45AlgorithmDataOptimized(TableFixedData data, TreeOptions options)
         {
             _data = data;
+            _options = options;
         }
 
         #endregion
-        
 
-        public double ComputeEntropy(IList<int> dataRowsIndexes, out bool sameClass)
+
+        public Statistics ComputeStatistics(IList<int> dataRowsIndexes)
         {
-            var freq = new int[_data.ClassesValue.Length];
+            var listVal = new List<int>();
+            var ret = new Statistics
+            {
+                Frequencies = new int[_data.ClassesValue.Length],
+                DatasetLength = dataRowsIndexes.Count,
+                MostFrequentClass = 0
+            };
+
+            foreach (var rowIndex in dataRowsIndexes)
+            {
+                var className = _data.Class(rowIndex);
+                if (ret.Frequencies[className] == 0)
+                {
+                    listVal.Add(className);
+                }
+                ret.Frequencies[className]++;
+            }
+
+            ret.SameClass = listVal.Count == 1;
+            var sum = 0.0;
+            for (var index = 0; index < listVal.Count; index++)
+            {
+                if ((int) ret.MostFrequentClass < listVal[index])
+                {
+                    ret.MostFrequentClass = listVal[index];
+                }
+                var val = ret.Frequencies[listVal[index]]/ret.DatasetLength;
+                sum += val*Math.Log(val, 2);
+            }
+
+            ret.Confidence = ret.Frequencies[(int) ret.MostFrequentClass]/(double)ret.DatasetLength;
+            ret.Entropy = -sum;
+
+            return ret;
+        }
+
+        public double[] ComputeEstimates(IList<int> dataRowsIndexes)
+        {
+            var estimates = new double[_data.ClassesValue.Length];
             var listVal = new List<int>();
 
             var itemCount = dataRowsIndexes.Count;
@@ -34,22 +73,19 @@ namespace DataMining.DecisionTrees
             foreach (var rowIndex in dataRowsIndexes)
             {
                 var className = _data.Class(rowIndex);
-                if (freq[className] == 0)
+                if (estimates[className] == 0)
                 {
                     listVal.Add(className);
                 }
-                freq[className]++;
+                estimates[className]++;
             }
 
-            sameClass = listVal.Count == 1;
-            var sum = 0.0;
-            for (var index = 0; index < listVal.Count; index++)
+            foreach (var itemValue in listVal)
             {
-                var val = ((double)freq[listVal[index]]) / itemCount;
-                sum += val * Math.Log(val, 2);
+                estimates[itemValue] = estimates[itemValue]/itemCount;
             }
 
-            return -sum;
+            return estimates;
         }
 
         private bool IsUnknown(object value)
@@ -167,8 +203,8 @@ namespace DataMining.DecisionTrees
 
                 foreach (var item in leftListVal)
                 {
-                    var val = ((double)freqLeft[item]) / leftCount;
-                    sumLeft += val * Math.Log(val, 2);
+                    var val = ((double) freqLeft[item])/leftCount;
+                    sumLeft += val*Math.Log(val, 2);
                 }
 
                 foreach (var item in rightListVal)
@@ -177,13 +213,13 @@ namespace DataMining.DecisionTrees
                     {
                         continue;
                     }
-                    var val = ((double)freqRight[item]) / rightCount;
-                    sumRight += val * Math.Log(val, 2);
+                    var val = ((double) freqRight[item])/rightCount;
+                    sumRight += val*Math.Log(val, 2);
                 }
 
 
-                var leftValue = (((double)leftCount) / rowsCount) * (-sumLeft);
-                var rightValue = (((double)rightCount) / rowsCount) * (-sumRight);
+                var leftValue = (((double) leftCount)/rowsCount)*(-sumLeft);
+                var rightValue = (((double) rightCount)/rowsCount)*(-sumRight);
 
                 var currentAttributeValue = leftValue + rightValue;
                 if (currentAttributeValue < minimumAttributeValue)
@@ -199,9 +235,9 @@ namespace DataMining.DecisionTrees
             ret.EntropyValue = minimumAttributeValue;
             ret.Subsets =
                 rows.Split(minsplitIndex)
-                    .Select(item => new ComputeAttributeEntropyResult.Subset { Rows = item, Value = splitValue });
+                    .Select(item => new ComputeAttributeEntropyResult.Subset {Rows = item, Value = splitValue});
 
-            if (ret.EntropyValue<Double.MaxValue)
+            if (ret.EntropyValue < Double.MaxValue)
             {
 
             }
@@ -215,7 +251,7 @@ namespace DataMining.DecisionTrees
             var freq = new Dictionary<object, IList<int>>();
             var itemCount = 0;
 
-            var ret = new ComputeAttributeEntropyResult { AttributeIndex = attributeIndex, IsNumeric = false };
+            var ret = new ComputeAttributeEntropyResult {AttributeIndex = attributeIndex, IsNumeric = false};
 
             foreach (var rowIndex in dataRowsIndexes)
             {
@@ -237,23 +273,24 @@ namespace DataMining.DecisionTrees
             foreach (var item in freq)
             {
                 var list = item.Value;
-                bool sameClass;
-                sum += (((double)list.Count) / itemCount) * ComputeEntropy(list, out sameClass);
+                var statistics = ComputeStatistics(list);
+                sum += (((double) list.Count)/itemCount)*statistics.Entropy;
             }
 
             ret.Subsets =
-                freq.Select(item => new ComputeAttributeEntropyResult.Subset { Rows = item.Value, Value = item.Key });
+                freq.Select(item => new ComputeAttributeEntropyResult.Subset {Rows = item.Value, Value = item.Key});
             ret.EntropyValue = sum;
 
             return ret;
         }
 
-        private Tuple<double, ComputeAttributeEntropyResult> ComputeBestGain(IList<int> dataRowsIndexes, IList<int> attributesIndexes, out bool sameClass)
+        private Tuple<double, ComputeAttributeEntropyResult, Statistics> ComputeBestGain(IList<int> dataRowsIndexes,
+            IList<int> attributesIndexes)
         {
-            var entropy = ComputeEntropy(dataRowsIndexes, out sameClass);
-            if (sameClass)
+            var statistics = ComputeStatistics(dataRowsIndexes);
+            if (statistics.SameClass)
             {
-                return new Tuple<double, ComputeAttributeEntropyResult>(double.MaxValue, null);
+                return new Tuple<double, ComputeAttributeEntropyResult, Statistics>(double.MaxValue, null, statistics);
             }
 
             var maxGain = Double.MinValue;
@@ -263,7 +300,8 @@ namespace DataMining.DecisionTrees
             Parallel.ForEach(attributesIndexes, attribute =>
             {
                 var attributeEntropy = ComputeAttributeEntropy(dataRowsIndexes, attribute);
-                var gain = (entropy - attributeEntropy.EntropyValue) * attributeEntropy.KnownValues / dataRowsIndexes.Count;
+                var gain = (statistics.Entropy - attributeEntropy.EntropyValue)*attributeEntropy.KnownValues/
+                           dataRowsIndexes.Count;
 
                 lock (locker)
                 {
@@ -282,7 +320,7 @@ namespace DataMining.DecisionTrees
             //foreach (var attribute in attributesIndexes)
             //{
             //    var attributeEntropy = ComputeAttributeEntropy(dataRowsIndexes, attribute);
-            //    var gain = (entropy - attributeEntropy.EntropyValue) * attributeEntropy.KnownValues / dataRowsIndexes.Count;
+            //    var gain = (statistics.Entropy - attributeEntropy.EntropyValue) * attributeEntropy.KnownValues / dataRowsIndexes.Count;
 
             //    lock (locker)
             //    {
@@ -298,7 +336,8 @@ namespace DataMining.DecisionTrees
             //    }
             //}
 
-            return new Tuple<double, ComputeAttributeEntropyResult>(maxGain, minAttributeEntropyResult);
+            return new Tuple<double, ComputeAttributeEntropyResult, Statistics>(maxGain, minAttributeEntropyResult,
+                statistics);
         }
 
         private class ComputeAttributeEntropyResult
@@ -331,7 +370,8 @@ namespace DataMining.DecisionTrees
             }
             var conditionalTree = new DecisionTree
             {
-                Root = new DecisionTree.DecisionNode()
+                Root = new DecisionTree.DecisionNode(),
+                Options = _options
             };
 
             var attributes = new List<int>();
@@ -344,11 +384,11 @@ namespace DataMining.DecisionTrees
                 }
                 attributes.Add(index);
             }
-            //BuildConditionalNodesRecursive(listRows, attributes, conditionalTree.Root);
-            BuildConditionalNodes(listRows, attributes, conditionalTree.Root);
+            BuildConditionalNodesRecursive(listRows, attributes, conditionalTree.Root);
+            //BuildConditionalNodes(listRows, attributes, conditionalTree.Root);
             return conditionalTree;
         }
-     
+
 
         private void BuildConditionalNodesRecursive(IList<int> rows, IList<int> attributesIndexes,
             DecisionTree.DecisionNode parentNode)
@@ -358,18 +398,20 @@ namespace DataMining.DecisionTrees
             {
                 return;
             }
-            bool sameClass;
-            var result = ComputeBestGain(rows, attributesIndexes, out sameClass);
 
+            var result = ComputeBestGain(rows, attributesIndexes);
 
-            if (sameClass)
+            var statistics = result.Item3;
+
+            parentNode.Statistics = statistics;
+            parentNode.Class = _data.ClassesValue[(int) statistics.MostFrequentClass];
+
+            if (statistics.SameClass)
             {
-                parentNode.Class = _data.ClassesValue[_data.Class(rows[0])];
                 return;
             }
+
             var attributeResult = result.Item2;
-
-
 
             var first = true;
             var children = new List<DecisionTree.DecisionNode>();
@@ -377,6 +419,10 @@ namespace DataMining.DecisionTrees
 
             foreach (var subset in attributeResult.Subsets)
             {
+                if (subset.Rows.Count < _options.MinItemsOnNode)
+                {
+                    continue;
+                }
                 var node = new DecisionTree.DecisionNode
                 {
                     Condition = attributeResult.IsNumeric
@@ -385,7 +431,9 @@ namespace DataMining.DecisionTrees
                             : DecisionTree.PredicateCondition.GreaterThan
                         : DecisionTree.PredicateCondition.Equal,
                     ThreshHold = subset.Value,
-                    Attribute = _data.Attributes[attributeResult.AttributeIndex]
+                    Attribute = _data.Attributes[attributeResult.AttributeIndex],
+                    Depth = parentNode.Depth + 1,
+                    Parent = parentNode
                 };
 
                 BuildConditionalNodesRecursive(subset.Rows, attributesList, node);
@@ -393,13 +441,13 @@ namespace DataMining.DecisionTrees
 
                 children.Add(node);
             }
-            parentNode.Children = children;
+            parentNode.Children = children;            
         }
 
         private class Iteration
         {
             public IList<int> Rows;
-            public IList<int> Attributes;            
+            public IList<int> Attributes;
             public DecisionTree.DecisionNode ParentNode;
         }
 
@@ -426,18 +474,17 @@ namespace DataMining.DecisionTrees
                     continue;
                 }
 
-                bool sameClass;
-                var result = ComputeBestGain(currentIteration.Rows, currentIteration.Attributes,
-                    out sameClass);
 
-                if (sameClass)
+                var result = ComputeBestGain(currentIteration.Rows, currentIteration.Attributes);
+                var statistics = result.Item3;                
+
+                currentIteration.ParentNode.Statistics = statistics;
+                currentIteration.ParentNode.Class = _data.ClassesValue[(int) statistics.MostFrequentClass];
+                if (statistics.SameClass || (currentIteration.ParentNode.Depth == _options.MaxTreeDepth))
                 {
-                    currentIteration.ParentNode.Class = _data.ClassesValue[_data.Class(currentIteration.Rows[0])];
                     currentIteration = stack.Count > 0 ? stack.Pop() : null;
                     continue;
                 }
-
-
                 var attributeResult = result.Item2;
                 var first = true;
                 var children = new List<DecisionTree.DecisionNode>();
@@ -454,14 +501,16 @@ namespace DataMining.DecisionTrees
                                 : DecisionTree.PredicateCondition.GreaterThan
                             : DecisionTree.PredicateCondition.Equal,
                         ThreshHold = subset.Value,
-                        Attribute = _data.Attributes[attributeResult.AttributeIndex]
+                        Attribute = _data.Attributes[attributeResult.AttributeIndex],
+                        Depth = currentIteration.ParentNode.Depth + 1,
+                        Parent = currentIteration.ParentNode                        
                     };
 
                     stack.Push(new Iteration
                     {
                         Rows = subset.Rows,
                         Attributes = attributesList,
-                        ParentNode = node,                        
+                        ParentNode = node,
 
                     });
                     first = false;
@@ -473,4 +522,6 @@ namespace DataMining.DecisionTrees
             }
         }
     }
+
+
 }
