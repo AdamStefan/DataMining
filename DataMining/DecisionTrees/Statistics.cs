@@ -14,6 +14,6 @@ namespace DataMining
         public int[] Frequencies { get; set; }
         public int DatasetLength { get; set; }
         public object MostFrequentClass { get; set; }
-        public string[] Classes { get; set; }        
+        public string[] Classes { get; set; }                
     }
 }

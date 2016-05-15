@@ -45,9 +45,38 @@ namespace DataMining.DecisionTrees
                 return ret;
             }
 
-            
+            public double MissedItems
+            {
+                get
+                {
+                    if (Children != null && Children.Any())
+                    {
+                        return Children.Sum(item => item.MissedItems);
+                    }
+
+                    return (Statistics.DatasetLength * (1 - Statistics.Confidence));
+                }
+            }            
 
             public Statistics Statistics { get; set; }
+
+            public IEnumerable<DecisionNode> Descendents
+            {
+                get
+                {
+                    if (Children == null)
+                    {
+                        return Enumerable.Empty<DecisionNode>();
+                    }
+                    var ret = Children.ToList();
+                    foreach (var child in Children)
+                    {
+                        ret.AddRange(child.Descendents);
+                    }
+
+                    return ret;
+                }
+            }
         }
 
         public DecisionNode Root { get; set; }
@@ -203,31 +232,39 @@ namespace DataMining.DecisionTrees
                 return;
             }
 
-
             var parentNodes = listTerminalNodes.Select(item => item.Parent).Distinct().Select(node => new NodeLossRate { Node = node, LossRate = 0 }).ToList();
 
             for (int index = 0; index < parentNodes.Count; index++)
             {
                 var node = parentNodes[index];
-                double childrenmissedValues = 0;
-                foreach (var child in node.Node.Children)
-                {
-                    childrenmissedValues += (child.Statistics.DatasetLength * (1 - child.Statistics.Confidence));
-                }
-                node.LossRate = childrenmissedValues - (node.Node.Statistics.DatasetLength * (1 - node.Node.Statistics.Confidence));
+                
+                node.LossRate = node.Node.MissedItems - (node.Node.Statistics.DatasetLength * (1 - node.Node.Statistics.Confidence));
             }
-            parentNodes = parentNodes.OrderByDescending(item => item.LossRate).ToList();
+            
 
             // to be reviewed
-            //while (listTerminalNodes.Count > Options.MaxNumberOfTerminalNodes && parentNodes.Count > 0)
-            //{
-            //    foreach (var child in parentNodes[0].Node.Children)
-            //    {
-            //        listTerminalNodes.Remove(child);
-            //    }
-            //    parentNodes[0].Node.Children = new DecisionNode[] { };
-            //    parentNodes.RemoveAt(0);
-            //}
+            while (listTerminalNodes.Count > Options.MaxNumberOfTerminalNodes && parentNodes.Count > 0)
+            {
+                parentNodes = parentNodes.OrderByDescending(item => item.LossRate).ToList();
+
+                foreach (var child in parentNodes[0].Node.Descendents)
+                {
+                    listTerminalNodes.Remove(child);
+                }
+                
+                var nodeToRemove = parentNodes[0].Node;
+                
+                nodeToRemove.Children = new DecisionNode[] { };
+                parentNodes.RemoveAt(0);
+                listTerminalNodes.Add(nodeToRemove);
+
+                var node = new NodeLossRate() { Node = nodeToRemove.Parent };
+                node.LossRate = node.Node.MissedItems - (node.Node.Statistics.DatasetLength * (1 - node.Node.Statistics.Confidence));
+                if (!parentNodes.Any(item => item.Node == node.Node))
+                {
+                    parentNodes.Add(node);
+                }                
+            }
 
         }
 
