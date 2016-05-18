@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using CsvHelper;
 using CsvHelper.Configuration;
@@ -20,7 +21,12 @@ namespace TestApplication
             //        false, false, new[] { 0, 5 }, 0);
             var algorithm = new C45Algorithm();
             var fixedData = TableFixedData.FromTableData(data);
-            var decisionalTree = algorithm.BuildConditionalTreeOptimized(fixedData, new TreeOptions() {MaxTreeDepth = 3,MinItemsOnNode = 50});
+            var dt = DateTime.Now;
+            var decisionalTree = algorithm.BuildConditionalTreeOptimized(fixedData,
+                new TreeOptions {MaxTreeDepth = 10});
+
+            var ts = DateTime.Now.Subtract(dt);
+            Console.WriteLine(ts.TotalMilliseconds);
             var pseudocode = decisionalTree.ToPseudocode();
 
 

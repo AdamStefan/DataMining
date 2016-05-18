@@ -27,21 +27,26 @@ namespace DataMining
             return ColumnDataTypes[column].IsDiscrete;
         }
 
+        public bool IsClassAttribute(int column)
+        {
+            return column == _classIndex;
+        }
+
         public ColumnDataType[] ColumnDataTypes { get; private set; }
 
         public object this[int rowIndex, int columnIndex]
         {
-            get { return _data[rowIndex, columnIndex]; }
-        }
+            get { return _data[columnIndex, rowIndex]; }
+        }       
 
         public int Count
         {
-            get { return _data.GetLength(0); }
+            get { return _data.GetLength(1); }
         }
 
         public int Class(int rowIndex)
         {
-            return (int)_data[rowIndex, _classIndex];
+            return (int) _data[_classIndex, rowIndex];
         }
 
         #endregion
@@ -52,7 +57,7 @@ namespace DataMining
 
             var attributesNo = tableData.Attributes.Count();
             var rowsNumber = tableData.Count;
-            tableFixedData._data = new object[rowsNumber, attributesNo];
+            tableFixedData._data = new object[attributesNo, rowsNumber];
             var index = 0;
             var columns = new Dictionary<string, int>();
             foreach (var attribute in tableData.Attributes)
@@ -60,7 +65,6 @@ namespace DataMining
                 columns[attribute] = index;
                 if (attribute == TableData.ClassAttributeName)
                 {
-
                     tableFixedData._classIndex = index;
                 }
                 index++;
@@ -71,18 +75,22 @@ namespace DataMining
             {
                 tableFixedData.Attributes[item.Value] = item.Key;
             }
+            
 
             var classes = new Dictionary<string, int>();
             var currentClassesIndex = 0;
 
-            for (index = 0; index < rowsNumber; index++)
+
+
+            for (int columnIndex = 0; columnIndex < tableFixedData.Attributes.Length; columnIndex++)
             {
-                for (int columnIndex = 0; columnIndex < tableFixedData.Attributes.Length; columnIndex++)
+                var attribute = tableFixedData.Attributes[columnIndex];
+                var isColumnNumeric = tableData[attribute].IsNumeric;
+
+                for (index = 0; index < rowsNumber; index++)
                 {
-
                     var currentValue = tableData[index][tableFixedData.Attributes[columnIndex]];
-                    var attribute = tableFixedData.Attributes[columnIndex];
-
+                    
                     if (attribute == TableData.ClassAttributeName)
                     {
                         if (!classes.ContainsKey((string) currentValue))
@@ -93,8 +101,17 @@ namespace DataMining
 
                         currentValue = classes[(string) currentValue];
                     }
+                    else if (isColumnNumeric)
+                    {
+                        double numericValue;
+                        if (currentValue.TryConvertToNumeric(out numericValue))
+                        {
+                            currentValue = numericValue;
+                        }
+                    }
 
-                    tableFixedData._data[index, columnIndex] = currentValue;
+
+                    tableFixedData._data[columnIndex, index] = currentValue;
                 }
             }
 
@@ -114,7 +131,7 @@ namespace DataMining
 
             ColumnDataTypes = new ColumnDataType[Attributes.Length];
 
-            var noOfRows = _data.GetLength(0);
+            var noOfRows = Count;
 
             for (int index = 0; index < Attributes.Length; index++)
             {
@@ -123,7 +140,7 @@ namespace DataMining
                     _labelsDictionary[index] = new Dictionary<string, int>();
                 }
 
-                if (_data[0, index].IsNumeric())
+                if (this[0, index].IsNumeric())
                 {
                     ColumnDataTypes[index] = new ColumnDataType();
                     continue;
@@ -134,16 +151,15 @@ namespace DataMining
 
                 for (int rowIndex = 0; rowIndex < noOfRows; rowIndex++)
                 {
-                    var currentValue = _data[rowIndex, index].ToString();
+                    var currentValue = this[rowIndex, index].ToString();
                     if (!symbols.ContainsKey(currentValue))
                     {
                         symbols.Add(currentValue, newSymbol);
                         newSymbol++;
-                    }                    
+                    }
                 }
                 ColumnDataTypes[index] = new ColumnDataType {IsDiscrete = true, NumberOfCategories = newSymbol};
             }
-                                              
         }
 
         public static DataSample[] ToSample(TableFixedData tableFixedData)
@@ -216,16 +232,16 @@ namespace DataMining
 
         public T[] GetColumn<T>(int columnIndex, IValueConverter<T> converter = null)
         {
-            var column = new T[_data.GetLength(0)];
+            var column = new T[Count];
             for (int index = 0; index < column.Length; index++)
             {
                 if (converter != null)
                 {
-                    column[index] = converter.Convert(_data[index, columnIndex]);
+                    column[index] = converter.Convert(this[index, columnIndex]);
                 }
                 else
                 {
-                    column[index] = (T)_data[index, columnIndex];
+                    column[index] = (T)this[index, columnIndex];
                 }
             }
 
@@ -239,12 +255,12 @@ namespace DataMining
                 throw new IndexOutOfRangeException();
             }
 
-            if (_data[0, columnIndex].IsNumeric())
+            if (this[0, columnIndex].IsNumeric())
             {
                 throw new Exception("Selected column is numeric");
             }
 
-            var column = new int[_data.GetLength(0)];
+            var column = new int[Count];
             if (_labelsDictionary[columnIndex] == null)
             {
                 _labelsDictionary[columnIndex] = new Dictionary<string, int>();
@@ -254,7 +270,7 @@ namespace DataMining
 
             for (int rowIndex = 0; rowIndex < column.Length; rowIndex++)
             {
-                var currentValue = _data[rowIndex, columnIndex].ToString();
+                var currentValue = this[rowIndex, columnIndex].ToString();
                 if (!symbols.ContainsKey(currentValue))
                 {
                     symbols.Add(currentValue, newSymbol);

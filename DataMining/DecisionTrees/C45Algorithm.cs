@@ -6,7 +6,7 @@
         {
             if (optimized)
             {
-                var ret = new C45AlgorithmDataOptimized(TableFixedData.FromTableData(data),options);
+                var ret = new C45AlgorithmDataOptimized(TableFixedData.FromTableData(data), options);
                 return ret.BuildConditionalTree();
             }
 

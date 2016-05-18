@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace DataMining
 {
@@ -81,14 +82,15 @@ namespace DataMining
             return false;
         }
 
-        public static IEnumerable<IList<T>> Split<T>(this IEnumerable<T> collection , int index)
+        public static IEnumerable<IList<T>> Split<T>(this IList<T> collection , int index)
         {
             var left = new List<T>();
             var right = new List<T>();
             if (index < 0)
             {
                 throw  new ArgumentException("index");
-            }
+            }            
+
             var currentIndex = 0;
             foreach (var item in collection)
             {

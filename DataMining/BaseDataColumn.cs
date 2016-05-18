@@ -19,7 +19,8 @@ namespace DataMining
             foreach (var item in Values)
             {
                 Double numericValue;
-                if (item != null && !item.TryConvertToNumeric(out numericValue))
+                if (item != null && item != DBNull.Value && item != System.Type.Missing &&
+                    !item.TryConvertToNumeric(out numericValue))
                 {
                     return false;
                 }

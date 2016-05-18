@@ -5,6 +5,7 @@ namespace DataMining
     public interface ITableData : IEnumerable<IDataRow>
     {
         IDataRow this[int rowIndex] { get; set; }
+        IDataColumn this[string column] { get; }
         IEnumerable<string> Attributes { get; }
         int IndexOf(IDataRow row);
         void Insert(int index, IDataRow value);
