@@ -250,7 +250,7 @@ namespace DataMining.DecisionTrees
 
             ret.EntropyValue = minimumAttributeValue;
             ret.Subsets =
-                rows.Split(minsplitIndex)
+                rows.ToArray().Split(minsplitIndex)
                     .Select(item => new ComputeAttributeEntropyResult.Subset {Rows = item, Value = splitValue});
 
 

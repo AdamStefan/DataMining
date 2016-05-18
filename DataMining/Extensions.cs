@@ -80,31 +80,22 @@ namespace DataMining
             }
 
             return false;
-        }
+        }        
 
-        public static IEnumerable<IList<T>> Split<T>(this IList<T> collection , int index)
+        public static IEnumerable<T[]> Split<T>(this T[] collection, int index)
         {
-            var left = new List<T>();
-            var right = new List<T>();
             if (index < 0)
             {
-                throw  new ArgumentException("index");
-            }            
-
-            var currentIndex = 0;
-            foreach (var item in collection)
-            {
-                if (currentIndex <= index)
-                {
-                    left.Add(item);
-                }
-                else
-                {
-                    right.Add(item);
-                }
-                currentIndex++;
+                throw new ArgumentException("index");
             }
-            return new[] {left, right};
+
+            var left = new T[index + 1];
+            var right = new T[collection.Length - index - 1];
+
+            Array.Copy(collection, left, index + 1);
+            Array.Copy(collection, index + 1, right, 0, collection.Length - index - 1);
+
+            return new[] { left, right };
         }
     }
 }

@@ -52,6 +52,8 @@
     <Compile Include="DecisionTrees\C45AlgorithmDataOptimized.cs" />
     <Compile Include="Data.cs" />
     <Compile Include="DecisionTrees\DecisionTree.cs" />
+    <Compile Include="DecisionTrees\Forest.cs" />
+    <Compile Include="DecisionTrees\RandomForestAlgorithm.cs" />
     <Compile Include="DecisionTrees\TreeOptions.cs" />
     <Compile Include="Distributions\CategoricalDistribution.cs" />
     <Compile Include="Distributions\GaussianDistribution.cs" />

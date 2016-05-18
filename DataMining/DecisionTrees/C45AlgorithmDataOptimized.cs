@@ -63,32 +63,7 @@ namespace DataMining.DecisionTrees
 
             return ret;
         }
-
-        public double[] ComputeEstimates(IList<int> dataRowsIndexes)
-        {
-            var estimates = new double[_data.ClassesValue.Length];
-            var listVal = new List<int>();
-
-            var itemCount = dataRowsIndexes.Count;
-
-            foreach (var rowIndex in dataRowsIndexes)
-            {
-                var className = _data.Class(rowIndex);
-                if (estimates[className] == 0)
-                {
-                    listVal.Add(className);
-                }
-                estimates[className]++;
-            }
-
-            foreach (var itemValue in listVal)
-            {
-                estimates[itemValue] = estimates[itemValue]/itemCount;
-            }
-
-            return estimates;
-        }
-
+        
         private bool IsUnknown(object value)
         {
             return value == null || value == DBNull.Value || value == Type.Missing;
@@ -279,8 +254,19 @@ namespace DataMining.DecisionTrees
 
             public int Compare(int x, int y)
             {
-                var xVal = (double) _data[x, _attributeIndex];
-                var yVal = (double) _data[y, _attributeIndex];
+                var oXVal = _data[x, _attributeIndex];
+                var oYVal = _data[y, _attributeIndex];
+                if (oXVal == null || oXVal == DBNull.Value || oXVal == Type.Missing)
+                {
+                    oXVal = Double.MaxValue;
+                }
+                if (oYVal == null || oYVal == DBNull.Value || oYVal == Type.Missing)
+                {
+                    oYVal = Double.MaxValue;
+                }
+                
+                var xVal =  (double) oXVal;
+                var yVal = (double) oYVal;
                 if (xVal > yVal)
                 {
                     return 1;
@@ -305,8 +291,7 @@ namespace DataMining.DecisionTrees
             var maxGain = Double.MinValue;
             ComputeAttributeEntropyResult minAttributeEntropyResult = null;
             var collectionPartitioner = Partitioner.Create(0, attributesIndexes.Count);
-
-            var totatInit = DateTime.Now;
+            
             var locker = new object();
             Parallel.ForEach(collectionPartitioner, (range, loopState) =>
             {
@@ -340,10 +325,7 @@ namespace DataMining.DecisionTrees
                     }
                 }
             });
-
-            var totalIter = DateTime.Now.Subtract(totatInit);
-
-            //Console.WriteLine(totalIter.TotalMilliseconds);
+                        
             return new Tuple<double, ComputeAttributeEntropyResult, Statistics>(maxGain, minAttributeEntropyResult,
                 statistics);
         }
@@ -358,8 +340,6 @@ namespace DataMining.DecisionTrees
             public int KnownValues { get; set; }
             private readonly IList<int> _invalidAttributes = new List<int>();
 
-
-
             public class Subset
             {
                 public object Value { get; set; }
@@ -370,7 +350,6 @@ namespace DataMining.DecisionTrees
             {
                 get { return _invalidAttributes; }
             }
-
 
         }
 

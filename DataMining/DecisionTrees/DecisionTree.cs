@@ -97,7 +97,76 @@ namespace DataMining.DecisionTrees
             }
             return className;
         }
-        
+
+        public double[] Compute(IDataRow row)
+        {
+            if (Root == null)
+            {
+                return null;
+            }
+            double[] ret;
+            foreach (var child in Root.Children)
+            {
+                ret = ComputeEstimates(row, child);
+                if (ret != null)
+                {
+                    return ret;
+                }
+            }
+            return null;
+        }
+
+        private static double[] ComputeEstimates(IDataRow row, DecisionNode node)
+        {
+            var rowValue = row[node.Attribute];
+            switch (node.Condition)
+            {
+                case PredicateCondition.Equal:
+                    if (!row[node.Attribute].Equals(node.ThreshHold))
+                    {
+                        return null;
+                    }
+                    break;
+                case PredicateCondition.LessThanOrEqual:
+                    if ((rowValue == null) || (Convert.ToDouble(rowValue) > Convert.ToDouble(node.ThreshHold)))
+                    {
+                        return null;
+                    }
+                    break;
+                case PredicateCondition.GreaterThan:
+                    if ((rowValue == null) || (Convert.ToDouble(rowValue) <= Convert.ToDouble(node.ThreshHold)))
+                    {
+                        return null;
+                    }
+                    break;
+                default:
+                    return null;
+            }
+
+
+            if (node.Children != null && node.Children.Any())
+            {
+                foreach (var child in node.Children)
+                {
+                    var estimates = ComputeEstimates(row, child);
+                    if (estimates != null)
+                    {
+                        return estimates;
+                    }
+                }
+            }
+            else
+            {
+                var estimates = new double[node.Statistics.Frequencies.Length];
+                for (int index = 0; index < estimates.Length; index++)
+                {
+                    estimates[index] = node.Statistics.Frequencies[index]/(double) node.Statistics.DatasetLength;
+                }
+            }
+
+            return null;
+        }
+
         private static bool GetClass(IDataRow row, DecisionNode node, out string className)
         {
             className = node.Class;
