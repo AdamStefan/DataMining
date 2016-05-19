@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace DataMining
 {
@@ -97,5 +96,46 @@ namespace DataMining
 
             return new[] { left, right };
         }
+
+        public static int[] Sample(this int[] source, int numberOfItems)
+        {
+            var ret = new int[numberOfItems];
+            Sample(source, ret);
+
+            return ret;
+        }
+
+        public static void Sample(this int[] source, int[] dest)
+        {
+            Random random = new Random();
+            Buffer.BlockCopy(source, 0, dest, 0, dest.Length*sizeof (int));
+
+            for (int index = dest.Length; index < source.Length; index++)
+            {
+                var newIndex = random.Next(0, index);
+                if (newIndex < dest.Length)
+                {
+                    dest[newIndex] = source[index];
+                }
+            }
+        }
+
+        public static int IndexOfMax(this double[] source)
+        {
+            var maxEstimate = Double.MinValue;
+            var ret = 0;
+            for (int i = 0; i < source.Length; i++)
+            {
+                if (source[i] > maxEstimate)
+                {
+                    maxEstimate = source[i];
+                    ret = i;
+                }
+            }
+
+            return ret;
+        }
+
+
     }
 }

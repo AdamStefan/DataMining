@@ -22,8 +22,25 @@ namespace TestApplication
             var algorithm = new C45Algorithm();
             var fixedData = TableFixedData.FromTableData(data);
             var dt = DateTime.Now;
+            var attributes =
+                fixedData.Attributes.Select((item, index) => index)
+                    .Where(item => !fixedData.IsClassAttribute(item) && fixedData.Attributes[item].ToLower() != "id")
+                    .ToArray();
             var decisionalTree = algorithm.BuildConditionalTreeOptimized(fixedData,
-                new TreeOptions {MaxTreeDepth = 10});
+                new TreeOptions { MaxTreeDepth = 10 }, attributes);
+            var missedItems = decisionalTree.Root.MissedItems;
+            
+
+            RandomForestAlgorithm rfa = new RandomForestAlgorithm(70);
+            var forest = rfa.BuildForest(fixedData, new TreeOptions {MaxTreeDepth = 10}, attributes);
+
+            var ret = decisionalTree.GetClass(data[0]);
+            var ret1 = decisionalTree.Compute(data[0]);
+            var ret4 = forest.Compute(data[0]);
+            var ret3 = forest.GetClass(data[0]);
+            
+
+
 
             var ts = DateTime.Now.Subtract(dt);
             Console.WriteLine(ts.TotalMilliseconds);

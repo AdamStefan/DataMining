@@ -4,6 +4,6 @@
     {
         public int MaxTreeDepth { get; set; }
         public int MinItemsOnNode { get; set; }
-        public int MaxNumberOfTerminalNodes { get; set; }
+        public int MaxNumberOfTerminalNodes { get; set; }        
     }
 }

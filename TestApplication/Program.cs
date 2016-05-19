@@ -23,11 +23,9 @@ namespace TestApplication
 
 
 
-            TestSantander.TestData();
-            //var asd = new StanfordLemmatizer();
-//            asd.TokenizeAndLemmatize(@"Ana are mere 
-//si pere");
-            Tools.Test();
+            //TestSantander.TestData();
+
+            //Tools.Test();
 
            
             var data = LoadDataFromfCSV("Data.csv");
@@ -46,13 +44,19 @@ namespace TestApplication
 
 
             var decisionalTree = algorithm.BuildConditionalTreeOptimized(fixedData, new TreeOptions());
+            var randomForestAlgorith = new RandomForestAlgorithm(500, null);
+            var forest = randomForestAlgorith.BuildForest(fixedData);
 
             for (int index = 0; index < 50; index++)
             {
                 //var className1 = ret1.GetClass(data.ToList()[8]);
                 var row = data.ToList()[index];
                 var estimatedClassName = decisionalTree.GetClass(row);
-                if (estimatedClassName != row.Class)
+                var result = decisionalTree.Compute(row);
+
+                var result2 = forest.Compute(row);
+                var classsForest = fixedData.ClassesValue[forest.GetClass(row)];
+                if (estimatedClassName != row.Class || classsForest!= row.Class)
                 {
                    // missed++;
                 }

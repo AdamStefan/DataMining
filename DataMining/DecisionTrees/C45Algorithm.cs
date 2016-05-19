@@ -1,4 +1,6 @@
-﻿namespace DataMining.DecisionTrees
+﻿using System.Collections.Generic;
+
+namespace DataMining.DecisionTrees
 {
     public class C45Algorithm
     {
@@ -13,10 +15,11 @@
             return new C45AlgorithmData().BuildConditionalTree(data);
         }
 
-        public DecisionTree BuildConditionalTreeOptimized(TableFixedData data, TreeOptions options)
+        public DecisionTree BuildConditionalTreeOptimized(TableFixedData data, TreeOptions options,
+            int[] attributes = null)
         {
             var ret = new C45AlgorithmDataOptimized(data, options);
-            return ret.BuildConditionalTree();
+            return ret.BuildConditionalTree(null, attributes);
         }
     }
 }

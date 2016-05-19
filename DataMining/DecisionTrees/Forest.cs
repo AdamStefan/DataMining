@@ -23,24 +23,49 @@ namespace DataMining.DecisionTrees
 
         #endregion
 
-        public double[] Compute(IDataRow dataRow)
+        public double[] Compute(IDataRow dataRow, bool discreteVote = true)
         {
             double[] responses = new double[_classes];
             object sync = new object();
-            Parallel.For((long)0, _decisionTrees.Count, i =>
+            Parallel.For((long) 0, _decisionTrees.Count, i =>
             {
-                var results = _decisionTrees[(int)i].Compute(dataRow);
+                var results = _decisionTrees[(int) i].Compute(dataRow);
+                
                 lock (sync)
                 {
-                    for (int index = 0; index < responses.Length; index++)
+                    if (!discreteVote)
                     {
-                        responses[index] += results[index];
+                        for (int index = 0; index < responses.Length; index++)
+                        {
+                            responses[index] += results[index];
+                        }
+                    }
+                    else
+                    {
+                        var maxIndex = results.IndexOfMax();
+                        responses[maxIndex]++;
                     }
                 }
-
             });
 
+            //for (int i = 0; i < _decisionTrees.Count; i++)
+            //{
+            //    var results = _decisionTrees[i].Compute(dataRow);
+            //    lock (sync)
+            //    {
+            //        for (int index = 0; index < responses.Length; index++)
+            //        {
+            //            responses[index] += results[index];
+            //        }
+            //    }
+            //}
 
+
+
+            for (int i = 0; i < responses.Length; i++)
+            {
+                responses[i] = responses[i]/_decisionTrees.Count;
+            }
             return responses;
         }
 
@@ -52,6 +77,23 @@ namespace DataMining.DecisionTrees
             foreach (var row in dataRows)
             {
                 ret[index] = Compute(row);
+            }
+
+            return ret;
+        }
+
+        public int GetClass(IDataRow dataRow)
+        {
+            var estimates = Compute(dataRow);
+            var maxEstimate = 0.0;
+            var ret = 0;
+            for (int i = 0; i < estimates.Length; i++)
+            {
+                if (estimates[i] > maxEstimate)
+                {
+                    maxEstimate = estimates[i];
+                    ret = i;
+                }
             }
 
             return ret;

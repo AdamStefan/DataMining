@@ -20,6 +20,10 @@ namespace DataMining.DecisionTrees
         public C45AlgorithmDataOptimized(TableFixedData data, TreeOptions options)
         {
             _data = data;
+            if (options == null)
+            {
+                options = new TreeOptions();
+            }
             _options = options;
         }
 
@@ -47,12 +51,14 @@ namespace DataMining.DecisionTrees
             }
 
             ret.SameClass = listVal.Count == 1;
+            var topFrequent = -1;
             var sum = 0.0;
             for (var index = 0; index < listVal.Count; index++)
             {
-                if ((int) ret.MostFrequentClass < listVal[index])
+                if (topFrequent < ret.Frequencies[listVal[index]])
                 {
                     ret.MostFrequentClass = listVal[index];
+                    topFrequent = ret.Frequencies[listVal[index]];
                 }
                 var val = ret.Frequencies[listVal[index]]/(double) ret.DatasetLength;
                 sum += val*Math.Log(val, 2);
@@ -353,12 +359,14 @@ namespace DataMining.DecisionTrees
 
         }
 
-        public DecisionTree BuildConditionalTree()
+        public DecisionTree BuildConditionalTree(int[] rows = null, IList<int> attributes = null)
         {
-            var listRows = Enumerable.Range(0, _data.Count - 1).ToArray();
+            if (rows == null)
+            {
+                rows = Enumerable.Range(0, _data.Count - 1).ToArray();
+            }
 
-
-            if (listRows.Length == 0)
+            if (rows.Length == 0)
             {
                 return null;
             }
@@ -367,18 +375,20 @@ namespace DataMining.DecisionTrees
                 Root = new DecisionTree.DecisionNode(),
                 Options = _options
             };
-
-            var attributes = new List<int>();
-
-            for (int index = 0; index < _data.Attributes.Length; index++)
+            if (attributes == null)
             {
-                if (_data.Attributes[index] == TableData.ClassAttributeName)
+                attributes = new List<int>();
+
+                for (int index = 0; index < _data.Attributes.Length; index++)
                 {
-                    continue;
+                    if (_data.Attributes[index] == TableData.ClassAttributeName)
+                    {
+                        continue;
+                    }
+                    attributes.Add(index);
                 }
-                attributes.Add(index);
             }
-            BuildConditionalNodesRecursive(listRows, attributes, conditionalTree.Root);
+            BuildConditionalNodesRecursive(rows, attributes, conditionalTree.Root);
             //BuildConditionalNodes(listRows, attributes, conditionalTree.Root);
             return conditionalTree;
         }
@@ -390,6 +400,7 @@ namespace DataMining.DecisionTrees
             var attributesList = attributesIndexes.ToList();
             if (attributesList.Count == 0)
             {
+                parentNode.Statistics = ComputeStatistics(rows);
                 return;
             }
 
@@ -400,7 +411,7 @@ namespace DataMining.DecisionTrees
             parentNode.Statistics = statistics;
             parentNode.Class = _data.ClassesValue[(int) statistics.MostFrequentClass];
 
-            if (statistics.SameClass || (parentNode.Depth == _options.MaxTreeDepth))
+            if (statistics.SameClass || (parentNode.Depth == _options.MaxTreeDepth && _options.MaxTreeDepth > 0))
             {
                 return;
             }
@@ -481,7 +492,7 @@ namespace DataMining.DecisionTrees
 
                 currentIteration.ParentNode.Statistics = statistics;
                 currentIteration.ParentNode.Class = _data.ClassesValue[(int) statistics.MostFrequentClass];
-                if (statistics.SameClass || (currentIteration.ParentNode.Depth == _options.MaxTreeDepth))
+                if (statistics.SameClass || (currentIteration.ParentNode.Depth == _options.MaxTreeDepth && _options.MaxTreeDepth>0))
                 {
                     currentIteration = stack.Count > 0 ? stack.Pop() : null;
                     continue;

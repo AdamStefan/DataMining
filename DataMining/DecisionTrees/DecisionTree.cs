@@ -162,6 +162,7 @@ namespace DataMining.DecisionTrees
                 {
                     estimates[index] = node.Statistics.Frequencies[index]/(double) node.Statistics.DatasetLength;
                 }
+                return estimates;
             }
 
             return null;
