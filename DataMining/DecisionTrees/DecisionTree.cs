@@ -222,6 +222,24 @@ namespace DataMining.DecisionTrees
             return isValid;
         }
 
+        public static string GetStringCondition(PredicateCondition condition)
+        {
+            switch (condition)
+            {
+                case PredicateCondition.Equal:
+                    return "=";
+                    break;
+                case PredicateCondition.LessThanOrEqual:
+                    return "<=";
+                    break;
+                case PredicateCondition.GreaterThan:
+                    return  ">";
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
         public static void GeneratePseudoCode(DecisionNode node, StringBuilder sb, bool first, int level = 0)
         {
             if (node == null)

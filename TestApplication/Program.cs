@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using CsvHelper;
@@ -16,7 +18,7 @@ namespace TestApplication
             TestC45();
             var text = "asdas aaaaaa asdbbbb asd1111 ttttt";
 
-            var multipleCharacterRegex = new System.Text.RegularExpressions.Regex("(.)\\1{1,}");
+            var multipleCharacterRegex = new java.lang.System.Text.RegularExpressions.Regex("(.)\\1{1,}");
             string pattern = "(.)\\1{1,}";
             string replacePattern = "$1$1";
             var retsss = multipleCharacterRegex.Replace(text, replacePattern);
@@ -231,6 +233,11 @@ namespace TestApplication
 
 
             var decisionalTree = algorithm.BuildConditionalTreeOptimized(fixedData, new TreeOptions() );
+
+           var decisionTreeRenderer = new DecisionTreeRenderer();
+           var bitmap = decisionTreeRenderer.RenderTree(decisionalTree, new Size(100, 50));
+           bitmap.Save("test.jpg", ImageFormat.Jpeg);
+            
             var pseudocode = decisionalTree.ToPseudocode();
         }
 
