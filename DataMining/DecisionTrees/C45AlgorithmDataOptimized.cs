@@ -179,20 +179,26 @@ namespace DataMining.DecisionTrees
                     sumRight += val*Math.Log(val, 2);
                 }
 
+                var leftProb = leftCount / (double)rowsCount;
+                var rightProb = rightCount / (double)rowsCount;
 
-                var leftValue = (((double) leftCount)/rowsCount)*(-sumLeft);
-                var rightValue = (((double) rightCount)/rowsCount)*(-sumRight);
+                var leftValue = leftProb*(-sumLeft);
+                var rightValue = rightProb * (-sumRight);
 
                 var currentAttributeValue = leftValue + rightValue;
                 if (currentAttributeValue < minimumAttributeValue)
                 {
                     minsplitIndex = index;
                     minimumAttributeValue = currentAttributeValue;
+                    
+                    ret.SplitInformation = -(leftProb * Math.Log(leftProb, 2) + rightProb * Math.Log(rightProb, 2));
                 }
             }
 
             double splitValue;
             _data[rows[minsplitIndex], attributeIndex].TryConvertToNumeric(out splitValue);
+
+            
 
             ret.EntropyValue = minimumAttributeValue;
             ret.Subsets = new Lazy<IEnumerable<ComputeAttributeEntropyResult.Subset>>(
@@ -234,7 +240,12 @@ namespace DataMining.DecisionTrees
             {
                 var list = item.Value;
                 var statistics = ComputeStatistics(list);
-                sum += (((double) list.Count)/itemCount)*statistics.Entropy;
+                var branchProbability = list.Count / (double)itemCount;
+                sum += branchProbability * statistics.Entropy;
+                if (branchProbability > 0)
+                {                   
+                    ret.SplitInformation -= branchProbability * Math.Log(branchProbability, 2);
+                }
             }
 
             ret.Subsets =
@@ -294,7 +305,7 @@ namespace DataMining.DecisionTrees
                 return new Tuple<double, ComputeAttributeEntropyResult, Statistics>(double.MaxValue, null, statistics);
             }
 
-            var maxGain = Double.MinValue;
+            var maxGainRatio = Double.MinValue;
             ComputeAttributeEntropyResult minAttributeEntropyResult = null;
             var collectionPartitioner = Partitioner.Create(0, attributesIndexes.Count);
             
@@ -306,8 +317,9 @@ namespace DataMining.DecisionTrees
                     var attribute = attributesIndexes[i];
 
                     var attributeEntropy = ComputeAttributeEntropy(dataRowsIndexes, attribute);
-                    var gain = (statistics.Entropy - attributeEntropy.EntropyValue)*attributeEntropy.KnownValues/
+                    var gain = (statistics.Entropy - attributeEntropy.EntropyValue) * attributeEntropy.KnownValues /
                                dataRowsIndexes.Length;
+                    var gainRatio = gain / attributeEntropy.SplitInformation;
 
                     lock (locker)
                     {
@@ -315,9 +327,9 @@ namespace DataMining.DecisionTrees
                         {
                             minAttributeEntropyResult = attributeEntropy;
                         }
-                        if (gain > maxGain)
+                        if (gainRatio > maxGainRatio)
                         {
-                            maxGain = gain;
+                            maxGainRatio = gainRatio;
                             minAttributeEntropyResult = attributeEntropy;
                         }
                         else if (minAttributeEntropyResult != attributeEntropy)
@@ -331,8 +343,39 @@ namespace DataMining.DecisionTrees
                     }
                 }
             });
+
+            //for (int i = 0; i < attributesIndexes.Count; i++)
+            //{
+            //    var attribute = attributesIndexes[i];
+
+            //    var attributeEntropy = ComputeAttributeEntropy(dataRowsIndexes, attribute);
+            //    var gain = (statistics.Entropy - attributeEntropy.EntropyValue) * attributeEntropy.KnownValues /
+            //               dataRowsIndexes.Length;
+            //    var gainRatio = gain / attributeEntropy.SplitInformation;
+
+            //    lock (locker)
+            //    {
+            //        if (minAttributeEntropyResult == null)
+            //        {
+            //            minAttributeEntropyResult = attributeEntropy;
+            //        }
+            //        if (gainRatio > maxGainRatio)
+            //        {
+            //            maxGainRatio = gainRatio;
+            //            minAttributeEntropyResult = attributeEntropy;
+            //        }
+            //        else if (minAttributeEntropyResult != attributeEntropy)
+            //        {
+            //            attributeEntropy.Subsets = null;
+            //        }
+            //        else if (Double.IsNegativeInfinity(gain))
+            //        {
+            //            minAttributeEntropyResult.InvalidAttributes.Add(attribute);
+            //        }
+            //    }
+            //}
                         
-            return new Tuple<double, ComputeAttributeEntropyResult, Statistics>(maxGain, minAttributeEntropyResult,
+            return new Tuple<double, ComputeAttributeEntropyResult, Statistics>(maxGainRatio, minAttributeEntropyResult,
                 statistics);
         }
 
@@ -343,6 +386,7 @@ namespace DataMining.DecisionTrees
             public bool IsNumeric { get; set; }
 
             public Lazy<IEnumerable<Subset>> Subsets { get; set; }
+            public double SplitInformation { get; set; }
             public int KnownValues { get; set; }
             private readonly IList<int> _invalidAttributes = new List<int>();
 
@@ -363,7 +407,7 @@ namespace DataMining.DecisionTrees
         {
             if (rows == null)
             {
-                rows = Enumerable.Range(0, _data.Count - 1).ToArray();
+                rows = Enumerable.Range(0, _data.Count).ToArray();
             }
 
             if (rows.Length == 0)

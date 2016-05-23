@@ -6,7 +6,7 @@ using System.Text;
 namespace DataMining.DecisionTrees
 {
     public class DecisionTree
-    {
+    {        
         public enum PredicateCondition
         {
             Equal,
@@ -77,6 +77,7 @@ namespace DataMining.DecisionTrees
                     return ret;
                 }
             }
+            
         }
 
         public DecisionNode Root { get; set; }

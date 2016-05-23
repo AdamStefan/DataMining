@@ -47,7 +47,7 @@ namespace DataMining.DecisionTrees
                     ? Math.Floor(_coverageRatio.Value * (data.Attributes.Length-1))
                     : Math.Ceiling(Math.Sqrt(data.Attributes.Length - 1)));
 
-            var rows = Enumerable.Range(0, data.Count - 1).ToArray();
+            var rows = Enumerable.Range(0, data.Count).ToArray();
 
             if (attributes == null)
             {

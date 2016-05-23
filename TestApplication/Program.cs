@@ -13,15 +13,13 @@ namespace TestApplication
     {
         private static void Main(string[] args)
         {
-
+            TestC45();
             var text = "asdas aaaaaa asdbbbb asd1111 ttttt";
 
             var multipleCharacterRegex = new System.Text.RegularExpressions.Regex("(.)\\1{1,}");
             string pattern = "(.)\\1{1,}";
             string replacePattern = "$1$1";
             var retsss = multipleCharacterRegex.Replace(text, replacePattern);
-
-
 
             //TestSantander.TestData();
 
@@ -61,8 +59,6 @@ namespace TestApplication
                    // missed++;
                 }
             }
-
-
 
 
             for (int index = 0; index < 100; index++)
@@ -222,6 +218,20 @@ namespace TestApplication
                 return data;
             }
 
+        }
+
+        public static void TestC45()
+        {
+            var data = LoadDataFromfCSV("Data1.csv");
+
+            
+            var algorithm = new C45Algorithm();
+            var fixedData = TableFixedData.FromTableData(data);
+
+
+
+            var decisionalTree = algorithm.BuildConditionalTreeOptimized(fixedData, new TreeOptions() );
+            var pseudocode = decisionalTree.ToPseudocode();
         }
 
 
