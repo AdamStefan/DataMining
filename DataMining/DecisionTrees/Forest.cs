@@ -48,20 +48,7 @@ namespace DataMining.DecisionTrees
                     }
                 }
             });
-
-            //for (int i = 0; i < _decisionTrees.Count; i++)
-            //{
-            //    var results = _decisionTrees[i].Compute(dataRow);
-            //    lock (sync)
-            //    {
-            //        for (int index = 0; index < responses.Length; index++)
-            //        {
-            //            responses[index] += results[index];
-            //        }
-            //    }
-            //}
-
-
+            
 
             for (int i = 0; i < responses.Length; i++)
             {
