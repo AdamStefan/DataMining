@@ -1,21 +1,14 @@
-﻿using System.Collections.Generic;
-
-namespace DataMining.DecisionTrees
+﻿namespace DataMining.DecisionTrees
 {
     public class C45Algorithm
     {
-        public DecisionTree BuildConditionalTree(ITableData data, TreeOptions options, bool optimized = false)
+        public DecisionTree BuildConditionalTree(ITableData data, TreeOptions options)
         {
-            if (optimized)
-            {
-                var ret = new C45AlgorithmDataOptimized(TableFixedData.FromTableData(data), options);
-                return ret.BuildConditionalTree();
-            }
-
-            return new C45AlgorithmData().BuildConditionalTree(data);
+            var ret = new C45AlgorithmDataOptimized(TableFixedData.FromTableData(data), options);
+            return ret.BuildConditionalTree();
         }
 
-        public DecisionTree BuildConditionalTreeOptimized(TableFixedData data, TreeOptions options,
+        public DecisionTree BuildConditionalTree(TableFixedData data, TreeOptions options,
             int[] attributes = null)
         {
             var ret = new C45AlgorithmDataOptimized(data, options);

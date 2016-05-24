@@ -28,7 +28,7 @@ namespace TestApplication
                 fixedData.Attributes.Select((item, index) => index)
                     .Where(item => !fixedData.IsClassAttribute(item) && fixedData.Attributes[item].ToLower() != "id")
                     .ToArray();
-            var decisionalTree = algorithm.BuildConditionalTreeOptimized(fixedData,
+            var decisionalTree = algorithm.BuildConditionalTree(fixedData,
                 new TreeOptions { MaxTreeDepth = 10 }, attributes);
             var missedItems = decisionalTree.Root.MissedItems;
             var treeRenderer = new DecisionTreeRenderer();

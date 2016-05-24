@@ -49,7 +49,6 @@
     <Compile Include="ColumnDataType.cs" />
     <Compile Include="DataPoint.cs" />
     <Compile Include="DecisionTrees\C45Algorithm.cs" />
-    <Compile Include="DecisionTrees\C45AlgorithmData.cs" />
     <Compile Include="DecisionTrees\C45AlgorithmDataOptimized.cs" />
     <Compile Include="Data.cs" />
     <Compile Include="DecisionTrees\DecisionTree.cs" />

@@ -69,30 +69,11 @@ namespace DataMining.DecisionTrees
             var ret = new Forest(data.ClassesValue.Length);
 
 
-            //var renderer = new DecisionTreeRenderer();
-            //var sampleAttributes1 = new int[2];
-            //sampleAttributes1[0] = 0;
-            //sampleAttributes1[1] = 2;
-            //var sampleRows1 = Enumerable.Range(0, 14).ToArray();
-
-            //var tree1 = c45Algorithm.BuildConditionalTree(sampleRows1, sampleAttributes1);
-
-            //var image1 = renderer.RenderTree(tree1, new System.Drawing.Size(100, 50));
-            //var imageName1 = "tttestForest.jpg";
-            //image1.Save(imageName1, System.Drawing.Imaging.ImageFormat.Jpeg);
-
-
-
             for (int i = 0; i < _trees; i++)
             {
                 rows.Sample(sampleRows);
                 attributes.Sample(sampleAttributes);
-
-                var tree = c45Algorithm.BuildConditionalTree(sampleRows, sampleAttributes);
-                //var image = renderer.RenderTree(tree,new System.Drawing.Size(100, 50));
-                //var imageName = string.Format("testForest{0}.jpg", i);
-                //image.Save(imageName, System.Drawing.Imaging.ImageFormat.Jpeg);
-                
+                var tree = c45Algorithm.BuildConditionalTree(sampleRows, sampleAttributes);                                
                 ret.Add(tree);
             }
 

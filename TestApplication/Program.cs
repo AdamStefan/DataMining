@@ -36,7 +36,7 @@ namespace TestApplication
             var watch2 = new Stopwatch();
 
 
-            var decisionalTree = algorithm.BuildConditionalTreeOptimized(fixedData, new TreeOptions());
+            var decisionalTree = algorithm.BuildConditionalTree(fixedData, new TreeOptions());
             var randomForestAlgorithm = new RandomForestAlgorithm(70, null);
             var forest = randomForestAlgorithm.BuildForest(fixedData);
 
@@ -65,7 +65,7 @@ namespace TestApplication
 
 
                 watch2.Start();
-                var ret1 = algorithm.BuildConditionalTreeOptimized(fixedData, new TreeOptions());
+                var ret1 = algorithm.BuildConditionalTree(fixedData, new TreeOptions());
                 watch2.Stop();
 
                 //var className = ret.GetClass(data.ToList()[8]);
@@ -225,7 +225,7 @@ namespace TestApplication
 
 
 
-            var decisionalTree = algorithm.BuildConditionalTreeOptimized(fixedData, new TreeOptions() );
+            var decisionalTree = algorithm.BuildConditionalTree(fixedData, new TreeOptions() );
 
            var decisionTreeRenderer = new DecisionTreeRenderer();
            var bitmap = decisionTreeRenderer.RenderTree(decisionalTree, new Size(100, 50));
