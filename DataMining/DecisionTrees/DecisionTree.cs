@@ -16,7 +16,7 @@ namespace DataMining.DecisionTrees
 
         public class DecisionNode
         {
-            public IEnumerable<DecisionNode> Children { get; set; }
+            public DecisionNode[] Children { get; set; }
 
             public int Depth { get; set; }
             
@@ -168,6 +168,19 @@ namespace DataMining.DecisionTrees
             }
 
             return null;
+        }
+
+        public static void LoadLeaves(DecisionNode node, List<DecisionNode> leaves)
+        {
+            if (node.IsLeaf)
+            {
+                leaves.Add(node);
+                return;
+            }
+            foreach (var child in node.Children)
+            {
+                LoadLeaves(child, leaves);
+            }
         }
 
         private static bool GetClass(IDataRow row, DecisionNode node, out string className)

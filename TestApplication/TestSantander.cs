@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using CsvHelper;
@@ -29,6 +31,10 @@ namespace TestApplication
             var decisionalTree = algorithm.BuildConditionalTreeOptimized(fixedData,
                 new TreeOptions { MaxTreeDepth = 10 }, attributes);
             var missedItems = decisionalTree.Root.MissedItems;
+            var treeRenderer = new DecisionTreeRenderer();
+            var image = treeRenderer.RenderTree(decisionalTree, new Size(100, 50));
+            image.Save("test1.jpg", ImageFormat.Jpeg);
+
             
 
             RandomForestAlgorithm rfa = new RandomForestAlgorithm(70);

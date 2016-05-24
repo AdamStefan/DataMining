@@ -112,7 +112,8 @@ namespace DataMining
 
             for (int index = dest.Length; index < source.Length; index++)
             {
-                var newIndex = random.Next(0, index);
+                var newIndex = random.Next(0, index + 1);
+                
                 if (newIndex < dest.Length)
                 {
                     dest[newIndex] = source[index];

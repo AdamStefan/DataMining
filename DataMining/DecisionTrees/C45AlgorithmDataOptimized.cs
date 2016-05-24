@@ -29,7 +29,6 @@ namespace DataMining.DecisionTrees
 
         #endregion
 
-
         public Statistics ComputeStatistics(IList<int> dataRowsIndexes)
         {
             var listVal = new List<int>();
@@ -86,7 +85,6 @@ namespace DataMining.DecisionTrees
                 ? ComputeAttributeEntropyNumericBinary(dataRowsIndexes, attributeIndex)
                 : ComputeAttributeEntropyNotNumeric(dataRowsIndexes, attributeIndex);
         }
-
 
         private ComputeAttributeEntropyResult ComputeAttributeEntropyNumericBinary(int[] dataRowsIndexes,
             int attributeIndex)
@@ -179,26 +177,24 @@ namespace DataMining.DecisionTrees
                     sumRight += val*Math.Log(val, 2);
                 }
 
-                var leftProb = leftCount / (double)rowsCount;
-                var rightProb = rightCount / (double)rowsCount;
+                var leftProb = leftCount/(double) rowsCount;
+                var rightProb = rightCount/(double) rowsCount;
 
                 var leftValue = leftProb*(-sumLeft);
-                var rightValue = rightProb * (-sumRight);
+                var rightValue = rightProb*(-sumRight);
 
                 var currentAttributeValue = leftValue + rightValue;
                 if (currentAttributeValue < minimumAttributeValue)
                 {
                     minsplitIndex = index;
                     minimumAttributeValue = currentAttributeValue;
-                    
-                    ret.SplitInformation = -(leftProb * Math.Log(leftProb, 2) + rightProb * Math.Log(rightProb, 2));
+
+                    ret.SplitInformation = -(leftProb*Math.Log(leftProb, 2) + rightProb*Math.Log(rightProb, 2));
                 }
             }
 
             double splitValue;
             _data[rows[minsplitIndex], attributeIndex].TryConvertToNumeric(out splitValue);
-
-            
 
             ret.EntropyValue = minimumAttributeValue;
             ret.Subsets = new Lazy<IEnumerable<ComputeAttributeEntropyResult.Subset>>(
@@ -209,7 +205,6 @@ namespace DataMining.DecisionTrees
 
             return ret;
         }
-
 
         private ComputeAttributeEntropyResult ComputeAttributeEntropyNotNumeric(IList<int> dataRowsIndexes,
             int attributeIndex)
@@ -432,11 +427,10 @@ namespace DataMining.DecisionTrees
                     attributes.Add(index);
                 }
             }
-            BuildConditionalNodesRecursive(rows, attributes, conditionalTree.Root);
-            //BuildConditionalNodes(listRows, attributes, conditionalTree.Root);
+            //BuildConditionalNodesRecursive(rows, attributes, conditionalTree.Root);
+            BuildConditionalNodes(rows, attributes, conditionalTree.Root);
             return conditionalTree;
         }
-
 
         private void BuildConditionalNodesRecursive(int[] rows, IList<int> attributesIndexes,
             DecisionTree.DecisionNode parentNode)
@@ -445,6 +439,7 @@ namespace DataMining.DecisionTrees
             if (attributesList.Count == 0)
             {
                 parentNode.Statistics = ComputeStatistics(rows);
+                parentNode.Class = _data.ClassesValue[(int)parentNode.Statistics.MostFrequentClass];
                 return;
             }
 
@@ -473,7 +468,10 @@ namespace DataMining.DecisionTrees
                 }
             }
 
-            foreach (var subset in attributeResult.Subsets.Value)
+            var subsets = attributeResult.Subsets.Value;
+            attributeResult.Subsets = null;
+
+            foreach (var subset in subsets)
             {
                 if (subset.Rows.Count < _options.MinItemsOnNode)
                 {
@@ -497,7 +495,7 @@ namespace DataMining.DecisionTrees
 
                 children.Add(node);
             }
-            parentNode.Children = children;
+            parentNode.Children = children.ToArray();
         }
 
         private class Iteration
@@ -526,6 +524,8 @@ namespace DataMining.DecisionTrees
                 var attributesList = currentIteration.Attributes.ToList();
                 if (attributesList.Count == 0)
                 {
+                    currentIteration.ParentNode.Statistics = ComputeStatistics(currentIteration.Rows);
+                    currentIteration.ParentNode.Class = _data.ClassesValue[(int)currentIteration.ParentNode.Statistics.MostFrequentClass];
                     currentIteration = stack.Count > 0 ? stack.Pop() : null;
                     continue;
                 }
@@ -555,7 +555,10 @@ namespace DataMining.DecisionTrees
                     }
                 }
 
-                foreach (var subset in attributeResult.Subsets.Value)
+                var subsets = attributeResult.Subsets.Value.ToList();
+                attributeResult.Subsets = null;
+
+                foreach (var subset in subsets)
                 {
                     var node = new DecisionTree.DecisionNode
                     {
@@ -581,7 +584,7 @@ namespace DataMining.DecisionTrees
 
                     children.Add(node);
                 }
-                currentIteration.ParentNode.Children = children;
+                currentIteration.ParentNode.Children = children.ToArray();
                 currentIteration = stack.Count > 0 ? stack.Pop() : null;
             }
         }

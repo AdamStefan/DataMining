@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using CsvHelper;
@@ -15,13 +14,7 @@ namespace TestApplication
     {
         private static void Main(string[] args)
         {
-            TestC45();
-            var text = "asdas aaaaaa asdbbbb asd1111 ttttt";
-
-            var multipleCharacterRegex = new java.lang.System.Text.RegularExpressions.Regex("(.)\\1{1,}");
-            string pattern = "(.)\\1{1,}";
-            string replacePattern = "$1$1";
-            var retsss = multipleCharacterRegex.Replace(text, replacePattern);
+            TestC45();          
 
             //TestSantander.TestData();
 
@@ -30,7 +23,7 @@ namespace TestApplication
            
             var data = LoadDataFromfCSV("Data.csv");
 
-            TestNaiveBayes();
+           // TestNaiveBayes();
             var algorithm = new C45Algorithm();
             var fixedData = TableFixedData.FromTableData(data);
 
@@ -44,8 +37,8 @@ namespace TestApplication
 
 
             var decisionalTree = algorithm.BuildConditionalTreeOptimized(fixedData, new TreeOptions());
-            var randomForestAlgorith = new RandomForestAlgorithm(500, null);
-            var forest = randomForestAlgorith.BuildForest(fixedData);
+            var randomForestAlgorithm = new RandomForestAlgorithm(70, null);
+            var forest = randomForestAlgorithm.BuildForest(fixedData);
 
             for (int index = 0; index < 50; index++)
             {
@@ -236,7 +229,7 @@ namespace TestApplication
 
            var decisionTreeRenderer = new DecisionTreeRenderer();
            var bitmap = decisionTreeRenderer.RenderTree(decisionalTree, new Size(100, 50));
-           bitmap.Save("test.jpg", ImageFormat.Jpeg);
+           bitmap.Save("test.jpg", System.Drawing.Imaging.ImageFormat.Jpeg);
             
             var pseudocode = decisionalTree.ToPseudocode();
         }

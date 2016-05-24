@@ -25,7 +25,8 @@ namespace DataMining.DecisionTrees
 
         public double[] Compute(IDataRow dataRow, bool discreteVote = true)
         {
-            double[] responses = new double[_classes];
+            double[] responses = new double[_classes];                        
+            
             object sync = new object();
             Parallel.For((long) 0, _decisionTrees.Count, i =>
             {

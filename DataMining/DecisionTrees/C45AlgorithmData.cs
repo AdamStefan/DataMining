@@ -411,7 +411,7 @@ namespace DataMining.DecisionTrees
 
                 children.Add(node);
             }
-            parentNode.Children = children;
+            parentNode.Children = children.ToArray();
         }
         
     }
