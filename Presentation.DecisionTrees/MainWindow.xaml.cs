@@ -130,20 +130,23 @@ namespace Presentation.DecisionTrees
 
             var decisionalTree = algorithm.BuildConditionalTree(fixedData, new TreeOptions());
 
-            var decisionTreeRenderer = new DecisionTreeRenderer();            
+            var decisionTreeRenderer = new DecisionTreeRenderer();
             var bitmap = decisionTreeRenderer.RenderTree(decisionalTree, new Size(100, 50));
             var decisionTreeFileName = Path.Combine(outputDirectory, string.Format("{0}.jpg", decisionTreeName));
             bitmap.Save(decisionTreeFileName, ImageFormat.Jpeg);
 
             var img = new BitmapImage(new Uri(decisionTreeFileName, UriKind.RelativeOrAbsolute));
-            
-            img.Freeze();            
-            mainGrid.Children.Remove(tree);
 
-            tree = new Image {Source = img};
-            mainGrid.Children.Add(tree);
-            Grid.SetRow(tree,1);
-            Grid.SetColumn(tree, 1);
+            img.Freeze();
+            //img.EndInit();
+            //mainGrid.Children.Remove(tree);
+            tree.Source = img;
+            tree.UpdateLayout();
+
+            //tree = new Image {Source = img};
+            //mainGrid.Children.Add(tree);
+            //Grid.SetRow(tree,1);
+            //Grid.SetColumn(tree, 1);
             txtMessage.Text = decisionalTree.ToPseudocode();
         }
 
