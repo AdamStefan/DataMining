@@ -1,30 +1,22 @@
-﻿using CsvHelper;
-using CsvHelper.Configuration;
-using DataMining;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Windows.Threading;
+using CsvHelper;
+using CsvHelper.Configuration;
+using DataMining;
 
 namespace SentimentAnalysis.Presentation
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow
     {
         #region Fields
 
@@ -38,8 +30,7 @@ namespace SentimentAnalysis.Presentation
         public MainWindow()
         {
             InitializeComponent();
-            _dispatcherTimer = new DispatcherTimer();
-            _dispatcherTimer.Interval = TimeSpan.FromMilliseconds(2000);
+            _dispatcherTimer = new DispatcherTimer {Interval = TimeSpan.FromMilliseconds(2000)};
             _dispatcherTimer.Tick += _dispatcherTimer_Tick;
             
         }
@@ -183,7 +174,7 @@ namespace SentimentAnalysis.Presentation
                 }
 
             }
-            var percentageResults = (1 - (((double)missedItems) / ((double)items))); ;
+            var percentageResults = (1 - (missedItems / ((double)items))); ;
             var sb = new StringBuilder();
             sb.AppendLine(string.Format("Total tests :{0}",items));
             sb.AppendLine(string.Format("Passed :{0}", items - missedItems));

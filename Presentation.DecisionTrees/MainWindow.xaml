@@ -1,0 +1,21 @@
+﻿<Window x:Class="Presentation.DecisionTrees.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MainWindow" Height="350" Width="525">
+    <Grid x:Name="mainGrid">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        
+        <Button Grid.ColumnSpan="2" Click="ButtonBase_OnClick">Select Data Set....</Button>
+        
+        <Image x:Name="tree" Grid.Row="1" Grid.Column="1" Stretch="Fill" HorizontalAlignment="Center" ></Image>
+        <TextBox FontWeight="Bold" Grid.Row="1" Grid.Column="0"  FontSize="14"   x:Name="txtMessage"  AcceptsReturn="True"></TextBox>
+    </Grid>
+    
+</Window>

@@ -30,6 +30,7 @@ namespace TestApplication
                     .ToArray();
             var decisionalTree = algorithm.BuildConditionalTree(fixedData,
                 new TreeOptions { MaxTreeDepth = 10 }, attributes);
+
             var missedItems = decisionalTree.Root.MissedItems;
             var treeRenderer = new DecisionTreeRenderer();
             var image = treeRenderer.RenderTree(decisionalTree, new Size(100, 50));
