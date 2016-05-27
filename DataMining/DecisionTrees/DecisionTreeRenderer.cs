@@ -14,6 +14,15 @@ namespace DataMining.DecisionTrees
             var depth = tree.Root.Descendents.Max(item => item.Depth);
             var offset = new Size(50, 50);
 
+            if (numberOfLeaves > 200)
+            {
+                tree.Options.MaxNumberOfTerminalNodes = 200;
+                tree.Prune();
+                descendents = tree.Root.Descendents;
+                numberOfLeaves = descendents.Count(item => item.IsLeaf);
+                depth = tree.Root.Descendents.Max(item => item.Depth);
+            }
+
             var width = ((2*blockSize.Width)*numberOfLeaves) + 2*(offset.Width);
             var height = ((blockSize.Height + 100)*(depth + 1)) + 2*(offset.Height);
 
@@ -137,7 +146,9 @@ namespace DataMining.DecisionTrees
 
                 var font = new Font("Arial", 9);
 
-                var message = node.IsLeaf ? node.Class : node.Children.First().Attribute;
+                var message = node.IsLeaf
+                    ? node.Class
+                    : node.Children.First().Attribute + Environment.NewLine + "(" + node.Class + ")";
 
                 var size = graphics.MeasureString(message, font);
                 var textWidth = size.Width;

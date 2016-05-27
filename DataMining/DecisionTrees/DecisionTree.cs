@@ -346,7 +346,9 @@ namespace DataMining.DecisionTrees
                         
             while (listTerminalNodes.Count > Options.MaxNumberOfTerminalNodes && parentNodes.Count > 0)
             {
-                parentNodes = parentNodes.OrderByDescending(item => item.LossRate).ToList();
+                parentNodes =
+                    parentNodes.Where(item => item.Node.Parent != null).OrderByDescending(item => item.LossRate)                       
+                        .ToList();
 
                 foreach (var child in parentNodes[0].Node.Descendents)
                 {
@@ -359,34 +361,42 @@ namespace DataMining.DecisionTrees
                 parentNodes.RemoveAt(0);
                 listTerminalNodes.Add(nodeToRemove);
 
-                var node = new NodeLossRate { Node = nodeToRemove.Parent };
-                node.LossRate = node.Node.MissedItems - (node.Node.Statistics.DatasetLength * (1 - node.Node.Statistics.Confidence));
-                if (parentNodes.All(item => item.Node != node.Node))
+                
+                if (nodeToRemove.Parent != null)
                 {
-                    parentNodes.Add(node);
-                }                
+                    var node = new NodeLossRate { Node = nodeToRemove.Parent };
+                    node.LossRate = node.Node.MissedItems -
+                                    (node.Node.Statistics.DatasetLength*(1 - node.Node.Statistics.Confidence));
+                    if (parentNodes.All(item => item.Node != node.Node))
+                    {
+                        parentNodes.Add(node);
+                    }
+                }
             }
 
         }
 
         private void Prune(DecisionNode node, List<DecisionNode> terminalNodes)
-        {            
-            var children = node.Children.ToList();
-            for (int index = children.Count - 1; index >= 0; index--)
+        {
+            if (node.Children != null)
             {
-                var child = children[index];
-                if (child.Statistics.DatasetLength < Options.MinItemsOnNode ||
-                    (child.Depth > Options.MaxTreeDepth && Options.MaxTreeDepth > 0))
+                var children = node.Children.ToList();
+                for (int index = children.Count - 1; index >= 0; index--)
                 {
-                    children.Remove(child);
+                    var child = children[index];
+                    if (child.Statistics.DatasetLength < Options.MinItemsOnNode ||
+                        (child.Depth > Options.MaxTreeDepth && Options.MaxTreeDepth > 0))
+                    {
+                        children.Remove(child);
+                    }
+                    else
+                    {
+                        Prune(child, terminalNodes);
+                    }
                 }
-                else
-                {
-                    Prune(child, terminalNodes);
-                }
+                node.Children = children.ToArray();
             }
-            node.Children = children.ToArray();
-            if (!node.Children.Any())
+            if (node.Children == null || !node.Children.Any())
             {
                 terminalNodes.Add(node);                
             }            
