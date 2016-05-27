@@ -14,9 +14,9 @@ namespace DataMining.DecisionTrees
             var depth = tree.Root.Descendents.Max(item => item.Depth);
             var offset = new Size(50, 50);
 
-            if (numberOfLeaves > 200)
+            if (numberOfLeaves > 20)
             {
-                tree.Options.MaxNumberOfTerminalNodes = 200;
+                tree.Options.MaxNumberOfTerminalNodes = 20;
                 tree.Prune();
                 descendents = tree.Root.Descendents;
                 numberOfLeaves = descendents.Count(item => item.IsLeaf);

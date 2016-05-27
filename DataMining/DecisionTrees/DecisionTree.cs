@@ -328,12 +328,15 @@ namespace DataMining.DecisionTrees
 
         public void Prune()
         {
-            var listTerminalNodes = new List<DecisionNode>();
-            Prune(Root, listTerminalNodes);
+            
+            Prune(Root);
+            var listTerminalNodes = Root.Descendents.Where(item => item.IsLeaf).ToList();
             if (Options.MaxNumberOfTerminalNodes <= 0 || Options.MaxNumberOfTerminalNodes >= listTerminalNodes.Count)
             {
                 return;
             }
+
+            
 
             var parentNodes = listTerminalNodes.Select(item => item.Parent).Distinct().Select(node => new NodeLossRate { Node = node, LossRate = 0 }).ToList();
 
@@ -341,42 +344,50 @@ namespace DataMining.DecisionTrees
             {
                 var node = parentNodes[index];
                 
-                node.LossRate = node.Node.MissedItems - (node.Node.Statistics.DatasetLength * (1 - node.Node.Statistics.Confidence));
+                node.LossRate = (node.Node.Statistics.DatasetLength * (1 - node.Node.Statistics.Confidence)) - node.Node.MissedItems;
             }
                         
-            while (listTerminalNodes.Count > Options.MaxNumberOfTerminalNodes && parentNodes.Count > 0)
+            while (listTerminalNodes.Count >= Options.MaxNumberOfTerminalNodes && parentNodes.Count > 0)
             {
                 parentNodes =
-                    parentNodes.Where(item => item.Node.Parent != null).OrderByDescending(item => item.LossRate)                       
+                    parentNodes.Where(item => item.Node.Parent != null).OrderBy(item => item.LossRate)                       
                         .ToList();
 
-                foreach (var child in parentNodes[0].Node.Descendents)
-                {
-                    listTerminalNodes.Remove(child);
-                }
-                
                 var nodeToRemove = parentNodes[0].Node;
-                
-                nodeToRemove.Children = new DecisionNode[] { };
+                var descendents = new HashSet<DecisionNode>(nodeToRemove.Descendents);
+                var itemsToRemove = parentNodes.Where(item => descendents.Contains(item.Node)).ToList();
+
                 parentNodes.RemoveAt(0);
+                foreach (var child in itemsToRemove)
+                {
+                    parentNodes.Remove(child);
+                }
+                foreach (var item in descendents)
+                {
+                    listTerminalNodes.Remove(item);
+                }
+                                                
+                nodeToRemove.Children = new DecisionNode[] { };
+                
                 listTerminalNodes.Add(nodeToRemove);
 
                 
                 if (nodeToRemove.Parent != null)
                 {
                     var node = new NodeLossRate { Node = nodeToRemove.Parent };
-                    node.LossRate = node.Node.MissedItems -
-                                    (node.Node.Statistics.DatasetLength*(1 - node.Node.Statistics.Confidence));
+                    node.LossRate = (node.Node.Statistics.DatasetLength * (1 - node.Node.Statistics.Confidence)) - node.Node.MissedItems;
                     if (parentNodes.All(item => item.Node != node.Node))
                     {
                         parentNodes.Add(node);
                     }
                 }
+
+                //listTerminalNodes = Root.Descendents.Where(item => item.IsLeaf).ToList();
             }
 
         }
 
-        private void Prune(DecisionNode node, List<DecisionNode> terminalNodes)
+        private void Prune(DecisionNode node)
         {
             if (node.Children != null)
             {
@@ -391,15 +402,11 @@ namespace DataMining.DecisionTrees
                     }
                     else
                     {
-                        Prune(child, terminalNodes);
+                        Prune(child);
                     }
                 }
                 node.Children = children.ToArray();
-            }
-            if (node.Children == null || !node.Children.Any())
-            {
-                terminalNodes.Add(node);                
-            }            
+            }                 
         }
 
     }
