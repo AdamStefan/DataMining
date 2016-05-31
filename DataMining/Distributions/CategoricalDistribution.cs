@@ -32,7 +32,7 @@ namespace DataMining.Distributions
                 Expectation += (i + 1)*_probabilities[i];
             }
         }
-
+        
 
         public CategoricalDistribution(int[] values, int totalNumberOfItems)
             : this(values, values.Any() ? values.Max() + 1 : 0, totalNumberOfItems)

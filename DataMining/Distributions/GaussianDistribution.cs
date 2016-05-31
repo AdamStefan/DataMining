@@ -38,7 +38,20 @@ namespace DataMining.Distributions
             }
 
             StandardDeviation = Math.Sqrt(sum/dataSet.Length);
+        }
 
+        public GaussianDistribution(int[] dataSet)
+        {
+            Expectation = dataSet.Average();
+            var sum = 0d;
+
+            foreach (var value in dataSet)
+            {
+                var item = (value - Expectation);
+                sum += (item * item);
+            }
+
+            StandardDeviation = Math.Sqrt(sum / dataSet.Length);
         }
 
         #endregion

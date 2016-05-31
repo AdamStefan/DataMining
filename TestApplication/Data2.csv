@@ -1,5 +1,4 @@
-Play Tennis	Temperature	Humidity	Wind	Class
-No	Hot	High	Weak	Sunny
+Play_Tennis	Temperature	Humidity	Wind	Class
 No	Hot	High	Strong	Sunny
 Yes	Hot	High	Weak	Overcast
 Yes	Mild	High	Weak	Rain
@@ -8,7 +7,9 @@ No	Cool	Normal	Strong	Rain
 Yes	Cool	Normal	Strong	Overcast
 No	Mild	High	Weak	Sunny
 Yes	Cool	Normal	Weak	Sunny
+Yes	Mild	Normal	Weak	Rain
 Yes	Mild	Normal	Strong	Sunny
 Yes	Mild	High	Strong	Overcast
 Yes	Hot	Normal	Weak	Overcast
 No	Mild	High	Strong	Rain
+

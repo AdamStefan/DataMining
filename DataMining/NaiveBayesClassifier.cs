@@ -56,6 +56,15 @@ namespace DataMining
             }
         }
 
+        public NaiveBayesClassifier(IDistribution[,] distribution,IDistribution classDistribution)
+        {
+            _classes = distribution.GetLength(0);
+
+            _distribution = distribution;
+            _classesProbablityDistribution = classDistribution;
+
+        }
+
         public Double[,][] SplitDataPerClass(DataSample[] samples, int classes, int columns)
         {
             var retLists = new List<Double>[columns, classes];
@@ -173,5 +182,12 @@ namespace DataMining
             return probabilities;
         }
 
+    }
+
+    public interface IDataPointsReader
+    {
+        int Classes { get; set; }
+        int[] GetClassses();
+        int[][] GetDataPerClass(int columnId);
     }
 }

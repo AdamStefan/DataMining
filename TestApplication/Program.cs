@@ -14,9 +14,13 @@ namespace TestApplication
     {
         private static void Main(string[] args)
         {
+
+            ExpediaReader reader = new ExpediaReader();
+
+            var dateTime = DateTime.Parse("9/3/2015  5:09:54 PM");
             TestC45();          
 
-            //TestSantander.TestData();
+            TestSantander.TestData();
 
             //Tools.Test();
 
@@ -217,21 +221,29 @@ namespace TestApplication
 
         public static void TestC45()
         {
-            var data = LoadDataFromfCSV("Data1.csv");
+            var data = LoadDataFromfCSV("Data2.csv");
 
-            
+
             var algorithm = new C45Algorithm();
             var fixedData = TableFixedData.FromTableData(data);
 
 
 
-            var decisionalTree = algorithm.BuildConditionalTree(fixedData, new TreeOptions() );
+            var decisionalTree = algorithm.BuildConditionalTree(fixedData, new TreeOptions());
 
-           var decisionTreeRenderer = new DecisionTreeRenderer();
-           var bitmap = decisionTreeRenderer.RenderTree(decisionalTree, new Size(100, 50));
-           bitmap.Save("test.jpg", System.Drawing.Imaging.ImageFormat.Jpeg);
-            
+            var decisionTreeRenderer = new DecisionTreeRenderer();
+            var bitmap = decisionTreeRenderer.RenderTree(decisionalTree, new Size(100, 50));
+            bitmap.Save("test.jpg", System.Drawing.Imaging.ImageFormat.Jpeg);
+
             var pseudocode = decisionalTree.ToPseudocode();
+
+            using (var textString = new StreamReader(@"C:\Research\Kaggle\Expedia\trainData\train.csv"))
+            {
+                while (!textString.EndOfStream)
+                {
+                    var line = textString.ReadLine();
+                }
+            }
         }
 
 
