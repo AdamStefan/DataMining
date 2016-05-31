@@ -5,10 +5,14 @@ using DataMining.Distributions;
 
 namespace DataMining
 {    
+    [Serializable]
     public class NaiveBayesClassifier
     {
+        
         private readonly IDistribution[,] _distribution;
-        private readonly IDistribution _classesProbablityDistribution;        
+        
+        private readonly IDistribution _classesProbablityDistribution;
+        
         private readonly int _classes;
 
         public NaiveBayesClassifier(DataSample[] samples, int classes, ColumnDataType[] columnDataTypes)

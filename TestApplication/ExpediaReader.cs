@@ -20,6 +20,8 @@ namespace TestApplication
 
         private Dictionary<int, int>[] _symbols;
         private int[] _maximumValues = new int[24];
+        private string _trainPath = @"C:\Working Projects\Kaggle\Expedia\train.csv";
+        private string _testPath = @"C:\Working Projects\Kaggle\Expedia\test.csv";
         private int _numberOfLines = 0;
         //private double[,][] _probabilities;
         //private double[] _classesValues;
@@ -57,6 +59,10 @@ namespace TestApplication
             _maximumValues[23] = 99;
 
             _numberOfLines = 37670293;
+            		        //2147483647	
+                            //1198785
+
+                              
 
             //if (!_loaded)
             //{
@@ -117,9 +123,12 @@ namespace TestApplication
             Classes = _maximumValues[23] + 1;
         }
 
+        [Serializable]
         public class Context
         {
+            
             public Dictionary<int, int>[] Symbols { get; set; }
+            
             public NaiveBayesClassifier NaiveBayesClassifier { get; set; }
 
         }
@@ -139,11 +148,26 @@ namespace TestApplication
 
             _distribution = new IDistribution[Classes, totalColumns];
 
+            for (int index = 0; index < nGrams.Count; index++)
+            {
+
+                _symbols[index] = new Dictionary<int, int>();
+                for (int jindex = 0; jindex < Classes; jindex++)
+                {
+                    nGramProbabilities[jindex, index] = new List<int>();
+                }
+
+            }
+           
+
             DateTime dt = DateTime.Now;
+            //var buffer = 100000000;
+            var buffer =    5000000;
+            var dataBuffer = new int?[23];
 
             using (
-                var textString = new StreamReader(@"C:\Research\Kaggle\Expedia\trainData\train.csv",
-                    System.Text.Encoding.ASCII, false, 100000000))
+                var textString = new StreamReader(_trainPath,
+                    System.Text.Encoding.ASCII, false, buffer))
             {
                 var line = textString.ReadLine();
                 while (!textString.EndOfStream)
@@ -167,17 +191,18 @@ namespace TestApplication
                             }
                         }
 
-                        var value = GetDataFromLine(columms, index);
-                        if (value.HasValue)
+                        dataBuffer[index] = GetDataFromLine(columms, index);
+                        if (dataBuffer[index].HasValue)
                         {
+                            var value = dataBuffer[index].Value;
                             if (index == 6)
                             {
                                 var n = probabilities[classVal, index][0];
                                 var oldMean = probabilities[classVal, index][1];
-                                var newMean = (probabilities[classVal, index][1]*(n/(n + 1))) + (value.Value/(n + 1));
+                                var newMean = (probabilities[classVal, index][1] * (n / (n + 1))) + (value / (n + 1));
                                 var oldVar = probabilities[classVal, index][2];
-                                var newVar = ((n/(n + 1))*(oldVar + (oldMean*oldMean)) +
-                                              ((value.Value + value.Value)/(n + 1))) - (newMean*newMean);
+                                var newVar = ((n / (n + 1)) * (oldVar + (oldMean * oldMean)) +
+                                              ((value * value) / (n + 1))) - (newMean * newMean);
 
                                 probabilities[classVal, index][0] = n + 1;
                                 probabilities[classVal, index][1] = newMean;
@@ -185,29 +210,17 @@ namespace TestApplication
                             }
                             else
                             {
-                                probabilities[classVal, index][value.Value]++;
+                                probabilities[classVal, index][value]++;
                             }
                         }
                     }
                     var newColumndIndex = 0;
+
                     foreach (var nGram in nGrams)
                     {
-                        //string tmp = nGram.Aggregate(string.Empty, (current, data) => current + ("_" + data));
-                        //var columnIdentifier = tmp.GetHashCode();
-
-                        var code = GetDataFromLine(columms, nGram);
-
-                        if (_symbols[newColumndIndex] == null)
-                        {
-                            _symbols[newColumndIndex] = new Dictionary<int, int>();
-                        }
-
-                        var dict = _symbols[newColumndIndex];
-
-                        if (nGramProbabilities[classVal, newColumndIndex] == null)
-                        {
-                            nGramProbabilities[classVal, newColumndIndex] = new List<int>();
-                        }
+                        var code = GetDataFromLine(dataBuffer, nGram);
+                       
+                        var dict = _symbols[newColumndIndex];                       
 
                         int value;
                         if (!dict.TryGetValue(code, out value))
@@ -230,6 +243,7 @@ namespace TestApplication
 
             var ts = DateTime.Now.Subtract(dt);
             Console.WriteLine(ts.TotalMinutes);
+            GC.Collect();
             for (int index = 0; index < nGramProbabilities.GetLength(0); index++)
             {
                 for (int jindex = 0; jindex < nGramProbabilities.GetLength(1); jindex++)
@@ -256,7 +270,7 @@ namespace TestApplication
                         var n = probabilities[index, jindex][0];
                         var mean = probabilities[index, jindex][1];
                         var var = probabilities[index, jindex][2];
-                        var std = Math.Sqrt(var/n);
+                        var std = Math.Sqrt(var);
                         _distribution[index, jindex] = new GaussianDistribution(mean, std);
                     }
                 }
@@ -345,10 +359,19 @@ namespace TestApplication
             ngrams.Add(new[] {7, 16});
             ngrams.Add(new[] {7, 20});
             var dataSamples = GetDataSamples(Enumerable.Range(0, 23), ngrams);
-            foreach (var sample in dataSamples)
+            var index =0;
+            using (var sw = new StreamWriter(string.Format("Submission_{0}", DateTime.Now.ToString())))
             {
-                var result = _classifier.GetLikelyhood(sample);
+                sw.WriteLine("id,hotel_cluster");
+                foreach (var sample in dataSamples)
+                {
+                    var result = _classifier.GetLikelyhood(sample);
+                    result.OrderBy(item => item).Take(5).ToArray();
+                    var data = index + "," + result[0] + " " + result[1] + " " + result[2] + " " + result[3] + " " + result[4];
+                    sw.WriteLine(data);                    
+                }
             }
+            
         }
 
 
@@ -356,7 +379,7 @@ namespace TestApplication
         {
             var list = new List<int>();
 
-            using (var textString = new StreamReader(@"C:\Research\Kaggle\Expedia\trainData\train.csv",
+            using (var textString = new StreamReader(_trainPath,
                     System.Text.Encoding.ASCII, false, 1024 * 1024 * 300))
             {
                 textString.ReadLine();
@@ -380,7 +403,7 @@ namespace TestApplication
         {                       
             var list = new List<int>[Classes];
 
-            using (var textString = new StreamReader(@"C:\Research\Kaggle\Expedia\trainData\train.csv",
+            using (var textString = new StreamReader(_trainPath,
                     System.Text.Encoding.ASCII, false, 1024 * 1024 * 300))
             {
                 var line = textString.ReadLine();
@@ -498,18 +521,37 @@ namespace TestApplication
         }
 
         private int GetDataFromLine(string[] line, int[] columnIndexex)
-        {
-            var data = String.Empty;
+        {            
+            var maxValue = 2000000;
+            var codeToRet = 0;               
             foreach (var column in columnIndexex)
             {
                 var ret = GetDataFromLine(line, column);
+                                
                 if (ret.HasValue)
                 {
-                    data += "_" + ret.Value;
+                    codeToRet += maxValue + ret.Value;                    
                 }
+                maxValue = maxValue << 1;
             }
-            var code = data.GetHashCode();
-            return code;
+            return codeToRet;
+        }
+
+        private int GetDataFromLine(int?[] values, int[] columnIndexex)
+        {
+            var maxValue = 2000000;
+            var codeToRet = 0;
+            foreach (var column in columnIndexex)
+            {
+                var ret = values[column];
+
+                if (ret.HasValue)
+                {
+                    codeToRet += maxValue + ret.Value;
+                }
+                maxValue = maxValue << 1;
+            }
+            return codeToRet;
         }
 
         
@@ -529,7 +571,7 @@ namespace TestApplication
         {
             var listSamples = new List<DataSample>();
             using (
-                var textString = new StreamReader(@"C:\Research\Kaggle\Expedia\test.csv",
+                var textString = new StreamReader(_testPath,
                     System.Text.Encoding.ASCII, false, 100000000))
             {
                 var line = textString.ReadLine();
@@ -541,10 +583,10 @@ namespace TestApplication
                     var dataPoints = new List<DataPoint>();
                     foreach (var field in fields)
                     {
-                        var data = GetDataFromLine(columns, field);
+                        var data = GetDataFromLine(columns, field + 1);
                         if (data.HasValue)
                         {
-                            dataPoints.Add(new DataPoint() {ColumnId = field, Value = data.Value});
+                            dataPoints.Add(new DataPoint() { ColumnId = field, Value = data.Value });
                         }
                     }
                     var columnIndex = 0;

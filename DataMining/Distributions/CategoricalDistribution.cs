@@ -11,12 +11,29 @@ namespace DataMining.Distributions
         #region Fields
 
         private readonly double[] _probabilities;
+        private double? _expectation;
 
         #endregion
 
         #region Properties
 
-        public double Expectation { get; private set; }
+        public double Expectation
+        {
+            get
+            {
+                if (!_expectation.HasValue)
+                {
+                    var exp = 0.0;
+                    for (int i = 0; i < _probabilities.Length; i++)
+                    {
+                        exp += (i + 1) * _probabilities[i];
+                    }
+                    _expectation = exp;
+                }
+                return _expectation.Value;
+            }
+
+        }
 
         #endregion
 
@@ -27,10 +44,10 @@ namespace DataMining.Distributions
             var sum = weights.Sum();
             _probabilities = weights.Select(item => item/sum).ToArray();
 
-            for (int i = 0; i < _probabilities.Length; i++)
-            {
-                Expectation += (i + 1)*_probabilities[i];
-            }
+            //for (int i = 0; i < _probabilities.Length; i++)
+            //{
+            //    Expectation += (i + 1)*_probabilities[i];
+            //}
         }
         
 
@@ -61,10 +78,10 @@ namespace DataMining.Distributions
             var count = (double) totalNumberOfItems;
 
             _probabilities = freq.Select(item => item/count).ToArray();
-            for (int i = 0; i < _probabilities.Length; i++)
-            {
-                Expectation += (i + 1)*_probabilities[i];
-            }
+            //for (int i = 0; i < _probabilities.Length; i++)
+            //{
+            //    Expectation += (i + 1)*_probabilities[i];
+            //}
         }
 
         #endregion
