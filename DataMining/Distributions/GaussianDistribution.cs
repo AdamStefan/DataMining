@@ -3,6 +3,7 @@ using System.Linq;
 
 namespace DataMining.Distributions
 {
+    [Serializable]
     public class GaussianDistribution : IDistribution
     {
 

@@ -4,15 +4,16 @@ using System.Linq;
 using DataMining.Distributions;
 
 namespace DataMining
-{    
+{
     [Serializable]
     public class NaiveBayesClassifier
     {
-        
+
         private readonly IDistribution[,] _distribution;
-        
+
         private readonly IDistribution _classesProbablityDistribution;
-        
+        private static ComparerLikelyhood _comparerLikelyhood = new ComparerLikelyhood();
+
         private readonly int _classes;
 
         public NaiveBayesClassifier(DataSample[] samples, int classes, ColumnDataType[] columnDataTypes)
@@ -20,7 +21,7 @@ namespace DataMining
             _classes = classes;
 
             _distribution = new IDistribution[classes, columnDataTypes.Length];
-            
+
             _classesProbablityDistribution = new CategoricalDistribution(
                 samples.Select(item => item.ClassId).ToArray(), classes);
             var splitDataPerClass = SplitDataPerClass(samples, _classes, columnDataTypes.Length);
@@ -60,7 +61,7 @@ namespace DataMining
             }
         }
 
-        public NaiveBayesClassifier(IDistribution[,] distribution,IDistribution classDistribution)
+        public NaiveBayesClassifier(IDistribution[,] distribution, IDistribution classDistribution)
         {
             _classes = distribution.GetLength(0);
 
@@ -136,7 +137,7 @@ namespace DataMining
 
         }
 
-        public int[] GetClassGroups(DataSample[] samples,int classes)
+        public int[] GetClassGroups(DataSample[] samples, int classes)
         {
             var ret = new int[classes];
 
@@ -151,11 +152,11 @@ namespace DataMining
         public int Compute(DataSample sample)
         {
             var probabilities = GetLikelyhood(sample);
-            
+
             var maxProbabilityIndex = 0;
 
             for (int index = 0; index < probabilities.Length; index++)
-            {                
+            {
                 if (probabilities[maxProbabilityIndex] < probabilities[index])
                 {
                     maxProbabilityIndex = index;
@@ -170,6 +171,27 @@ namespace DataMining
         {
             var probabilities = new double[_classes];
 
+            //for (int index = 0; index < probabilities.Length; index++)
+            //{
+            //    probabilities[index] = _classesProbablityDistribution.GetLogProbability(index);
+
+            //    foreach (var dataPoint in sample.DataPoints)
+            //    {
+            //        var value = Convert.ToDouble(dataPoint.Value);
+
+            //        probabilities[index] = probabilities[index] +
+            //                               _distribution[index, dataPoint.ColumnId].GetLogProbability(value);
+            //    }
+            //}
+            GetLikelyhood(sample, probabilities);
+
+            return probabilities;
+        }
+
+        public void GetLikelyhood(DataSample sample, double[] result)
+        {
+            var probabilities = result;
+
             for (int index = 0; index < probabilities.Length; index++)
             {
                 probabilities[index] = _classesProbablityDistribution.GetLogProbability(index);
@@ -182,16 +204,47 @@ namespace DataMining
                                            _distribution[index, dataPoint.ColumnId].GetLogProbability(value);
                 }
             }
-
-            return probabilities;
         }
 
-    }
+        public struct ClassLikelyhood
+        {
+            public int ClassId { get; set; }
+            public double Value { get; set; }
+        }
 
-    public interface IDataPointsReader
-    {
-        int Classes { get; set; }
-        int[] GetClassses();
-        int[][] GetDataPerClass(int columnId);
+        private class ComparerLikelyhood : IComparer<ClassLikelyhood>
+        {
+            public int Compare(ClassLikelyhood x, ClassLikelyhood y)
+            {
+                if (x.Value > y.Value)
+                {
+                    return -1;
+                }
+                else if (x.Value < y.Value)
+                {
+                    return 1;
+                }
+                return 0;
+            }
+        }
+
+        public void GetLikelyhood(DataSample sample, ClassLikelyhood[] result)
+        {
+            for (int index = 0; index < _classes; index++)
+            {
+                //result[index].Value = _classesProbablityDistribution.GetLogProbability(index);
+                result[index].ClassId = index;
+
+                foreach (var dataPoint in sample.DataPoints)
+                {
+                    var value = Convert.ToDouble(dataPoint.Value);
+
+                    result[index].Value = result[index].Value +
+                                          _distribution[index, dataPoint.ColumnId].GetLogProbability(value);
+                }
+            }
+            Array.Sort(result, _comparerLikelyhood);
+        }
+
     }
 }

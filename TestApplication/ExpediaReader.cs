@@ -1,27 +1,26 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Security.AccessControl;
-using com.sun.org.apache.bcel.@internal.generic;
+using System.Text;
+using System.Threading.Tasks;
 using DataMining;
 using DataMining.Distributions;
-using edu.stanford.nlp.patterns;
-using Data = javax.xml.crypto.Data;
 
 namespace TestApplication
 {
-    public class ExpediaReader : IDataPointsReader
+    public class ExpediaReader 
     {
         private int _count;
         private bool _loaded = false;
 
         private Dictionary<int, int>[] _symbols;
         private int[] _maximumValues = new int[24];
-        private string _trainPath = @"C:\Working Projects\Kaggle\Expedia\train.csv";
-        private string _testPath = @"C:\Working Projects\Kaggle\Expedia\test.csv";
+        private string _trainPath = @"C:\Research\Kaggle\Expedia\trainData\train.csv";
+        private string _testPath = @"C:\Research\Kaggle\Expedia\test.csv";
         private int _numberOfLines = 0;
         //private double[,][] _probabilities;
         //private double[] _classesValues;
@@ -33,25 +32,26 @@ namespace TestApplication
 
         private void Init()
         {
-            _maximumValues[0] = 365;
+            _maximumValues[0] = 12;
             _maximumValues[1] = 53;
             _maximumValues[2] = 4;
             _maximumValues[3] = 239;
             _maximumValues[4] = 1027;
             _maximumValues[5] = 56508;
-            _maximumValues[6] = 12408;
+            //_maximumValues[6] = 12408/100;
+            _maximumValues[6] = 125;
             _maximumValues[7] = 1198785;
             _maximumValues[8] = 1;
             _maximumValues[9] = 1;
             _maximumValues[10] = 10;
-            _maximumValues[11] = 365;
-            _maximumValues[12] = 365;
+            _maximumValues[11] = 12;
+            _maximumValues[12] = 12;
             _maximumValues[13] = 9;
             _maximumValues[14] = 9;
             _maximumValues[15] = 8;
             _maximumValues[16] = 65107;
             _maximumValues[17] = 9;
-            _maximumValues[18] = 1;
+            _maximumValues[18] = 10;
             _maximumValues[19] = 269;
             _maximumValues[20] = 7;
             _maximumValues[21] = 212;
@@ -158,7 +158,22 @@ namespace TestApplication
                 }
 
             }
-           
+            for (int index = 0; index < Classes; index++)
+            {
+                for (int jIndex = 0; jIndex < 23; jIndex++)
+                {
+
+                    //if (jIndex != 6)
+                    //{
+                        probabilities[index, jIndex] = new double[_maximumValues[jIndex] + 1];
+                    //}
+                    //else
+                    //{
+                    //    probabilities[index, jIndex] = new double[3];
+                    //}
+                }
+            }
+
 
             DateTime dt = DateTime.Now;
             //var buffer = 100000000;
@@ -167,51 +182,51 @@ namespace TestApplication
 
             using (
                 var textString = new StreamReader(_trainPath,
-                    System.Text.Encoding.ASCII, false, buffer))
+                    Encoding.ASCII, false, buffer))
             {
                 var line = textString.ReadLine();
                 while (!textString.EndOfStream)
                 {
 
                     line = textString.ReadLine();
-                    var columms = line.Split(",".ToCharArray());
+                    var columms = line.Split(',');
                     var classVal = GetDataFromLine(columms, 23).Value;
                     classesValues[classVal]++;
                     for (var index = 0; index < 23; index++)
                     {
-                        if (probabilities[classVal, index] == null)
-                        {
-                            if (index != 6)
-                            {
-                                probabilities[classVal, index] = new double[_maximumValues[index] + 1];
-                            }
-                            else
-                            {
-                                probabilities[classVal, index] = new double[3];
-                            }
-                        }
+                        //if (probabilities[classVal, index] == null)
+                        //{
+                        //    if (index != 6)
+                        //    {
+                        //        probabilities[classVal, index] = new double[_maximumValues[index] + 1];
+                        //    }
+                        //    else
+                        //    {
+                        //        probabilities[classVal, index] = new double[3];
+                        //    }
+                        //}
 
                         dataBuffer[index] = GetDataFromLine(columms, index);
                         if (dataBuffer[index].HasValue)
                         {
                             var value = dataBuffer[index].Value;
-                            if (index == 6)
-                            {
-                                var n = probabilities[classVal, index][0];
-                                var oldMean = probabilities[classVal, index][1];
-                                var newMean = (probabilities[classVal, index][1] * (n / (n + 1))) + (value / (n + 1));
-                                var oldVar = probabilities[classVal, index][2];
-                                var newVar = ((n / (n + 1)) * (oldVar + (oldMean * oldMean)) +
-                                              ((value * value) / (n + 1))) - (newMean * newMean);
+                            //if (index == 6)
+                            //{
+                            //    var n = probabilities[classVal, index][0];
+                            //    var oldMean = probabilities[classVal, index][1];
+                            //    var newMean = (probabilities[classVal, index][1] * (n / (n + 1))) + (value / (n + 1));
+                            //    var oldVar = probabilities[classVal, index][2];
+                            //    var newVar = ((n / (n + 1)) * (oldVar + (oldMean * oldMean)) +
+                            //                  ((value * value) / (n + 1))) - (newMean * newMean);
 
-                                probabilities[classVal, index][0] = n + 1;
-                                probabilities[classVal, index][1] = newMean;
-                                probabilities[classVal, index][2] = newVar;
-                            }
-                            else
-                            {
-                                probabilities[classVal, index][value]++;
-                            }
+                            //    probabilities[classVal, index][0] = n + 1;
+                            //    probabilities[classVal, index][1] = newMean;
+                            //    probabilities[classVal, index][2] = newVar;
+                            //}
+                            //else
+                            //{
+                            probabilities[classVal, index][value]++;
+                            //}
                         }
                     }
                     var newColumndIndex = 0;
@@ -261,18 +276,18 @@ namespace TestApplication
             {
                 for (int jindex = 0; jindex < probabilities.GetLength(1); jindex++)
                 {
-                    if (jindex != 6)
-                    {
+                    //if (jindex != 6)
+                    //{
                         _distribution[index, jindex] = new CategoricalDistribution(probabilities[index, jindex]);
-                    }
-                    else
-                    {
-                        var n = probabilities[index, jindex][0];
-                        var mean = probabilities[index, jindex][1];
-                        var var = probabilities[index, jindex][2];
-                        var std = Math.Sqrt(var);
-                        _distribution[index, jindex] = new GaussianDistribution(mean, std);
-                    }
+                    //}
+                    //else
+                    //{
+                    //    var n = probabilities[index, jindex][0];
+                    //    var mean = probabilities[index, jindex][1];
+                    //    var var = probabilities[index, jindex][2];
+                    //    var std = Math.Sqrt(var);
+                    //    _distribution[index, jindex] = new GaussianDistribution(mean, std);
+                    //}
                 }
             }
 
@@ -358,17 +373,33 @@ namespace TestApplication
             ngrams.Add(new[] {5, 16, 18, 19});
             ngrams.Add(new[] {7, 16});
             ngrams.Add(new[] {7, 20});
-            var dataSamples = GetDataSamples(Enumerable.Range(0, 23), ngrams);
+            //var dataSamples = GetDataSamples(Enumerable.Range(0, 20), ngrams);
+            var dataSamples = GetDataSamples(Enumerable.Empty<int>(), ngrams);
             var index =0;
-            using (var sw = new StreamWriter(string.Format("Submission_{0}", DateTime.Now.ToString())))
+            
+
+            var collectionPartitioner = Partitioner.Create(0, dataSamples.Count);
+                        
+            Parallel.ForEach(collectionPartitioner, (range, loopState) =>
+            {
+                NaiveBayesClassifier.ClassLikelyhood[] resultData = new NaiveBayesClassifier.ClassLikelyhood[Classes];
+                for (int i = range.Item1; i < range.Item2; i++)
+                {
+                    _classifier.GetLikelyhood(dataSamples[i], resultData);
+                    dataSamples[i].Tag = resultData[0].ClassId + " " + resultData[1].ClassId + " " + resultData[2].ClassId + " " +
+                                 resultData[3].ClassId + " " + resultData[4].ClassId;
+                }
+            });
+           
+
+            using (var sw = new StreamWriter(string.Format("Submission_{0}", DateTime.Now.ToString("dd-MM-yy hh-mm"))))
             {
                 sw.WriteLine("id,hotel_cluster");
                 foreach (var sample in dataSamples)
-                {
-                    var result = _classifier.GetLikelyhood(sample);
-                    result.OrderBy(item => item).Take(5).ToArray();
-                    var data = index + "," + result[0] + " " + result[1] + " " + result[2] + " " + result[3] + " " + result[4];
-                    sw.WriteLine(data);                    
+                {                    
+                    var data = index + "," + sample.Tag;
+                    sw.WriteLine(data);
+                    index ++;
                 }
             }
             
@@ -380,7 +411,7 @@ namespace TestApplication
             var list = new List<int>();
 
             using (var textString = new StreamReader(_trainPath,
-                    System.Text.Encoding.ASCII, false, 1024 * 1024 * 300))
+                    Encoding.ASCII, false, 1024 * 1024 * 300))
             {
                 textString.ReadLine();
                 while (!textString.EndOfStream)
@@ -404,7 +435,7 @@ namespace TestApplication
             var list = new List<int>[Classes];
 
             using (var textString = new StreamReader(_trainPath,
-                    System.Text.Encoding.ASCII, false, 1024 * 1024 * 300))
+                    Encoding.ASCII, false, 1024 * 1024 * 300))
             {
                 var line = textString.ReadLine();
                 while (!textString.EndOfStream)
@@ -486,18 +517,18 @@ namespace TestApplication
         //    return ret;
         //}
 
-        private int? GetDataFromLine(string[] line, int columnIndex)
+        private int? GetDataFromLine(string[] line, int columnIndex, bool isTest = false)
         {
             if (columnIndex <= 23)
             {
-                var data = line[columnIndex];
+                var data = !isTest ? line[columnIndex] : line[columnIndex + 1];
 
                 if (columnIndex == 0 || columnIndex == 11 || columnIndex == 12)
                 {
                     DateTime date;
                     if (DateTime.TryParse(data, out date))
                     {
-                        return date.DayOfYear;
+                        return date.Month;
                     }
                 }
                 else if (columnIndex == 6)
@@ -505,7 +536,7 @@ namespace TestApplication
                     double value;
                     if (Double.TryParse(data, out value))
                     {
-                        return Convert.ToInt32(value);
+                        return Convert.ToInt32(value)/100;
                     }
                 }
                 else
@@ -520,13 +551,13 @@ namespace TestApplication
             return null;
         }
 
-        private int GetDataFromLine(string[] line, int[] columnIndexex)
+        private int GetDataFromLine(string[] line, int[] columnIndexex, bool isTest = false)
         {            
             var maxValue = 2000000;
             var codeToRet = 0;               
             foreach (var column in columnIndexex)
             {
-                var ret = GetDataFromLine(line, column);
+                var ret = GetDataFromLine(line, column, isTest);
                                 
                 if (ret.HasValue)
                 {
@@ -537,7 +568,7 @@ namespace TestApplication
             return codeToRet;
         }
 
-        private int GetDataFromLine(int?[] values, int[] columnIndexex)
+        private int GetDataFromLine(int?[] values, int[] columnIndexex, bool isTest = false)
         {
             var maxValue = 2000000;
             var codeToRet = 0;
@@ -554,7 +585,7 @@ namespace TestApplication
             return codeToRet;
         }
 
-        
+
 
         public int Classes { get; set; }
         public int[] GetClassses()
@@ -567,12 +598,12 @@ namespace TestApplication
             return ReadTrainPerClass(columnId);
         }
 
-        public IEnumerable<DataSample> GetDataSamples(IEnumerable<int> fields, List<int[]> nGrams = null)
+        public IList<DataSample> GetDataSamples(IEnumerable<int> fields, List<int[]> nGrams = null)
         {
             var listSamples = new List<DataSample>();
             using (
                 var textString = new StreamReader(_testPath,
-                    System.Text.Encoding.ASCII, false, 100000000))
+                    Encoding.ASCII, false, 100000000))
             {
                 var line = textString.ReadLine();
                 while (!textString.EndOfStream)
@@ -583,7 +614,7 @@ namespace TestApplication
                     var dataPoints = new List<DataPoint>();
                     foreach (var field in fields)
                     {
-                        var data = GetDataFromLine(columns, field + 1);
+                        var data = GetDataFromLine(columns, field, true);
                         if (data.HasValue)
                         {
                             dataPoints.Add(new DataPoint() { ColumnId = field, Value = data.Value });
@@ -592,7 +623,7 @@ namespace TestApplication
                     var columnIndex = 0;
                     foreach (var field in nGrams)
                     {
-                        var data = GetDataFromLine(columns, field);
+                        var data = GetDataFromLine(columns, field, true);
                         var dict = _symbols[columnIndex];
                         if (dict.ContainsKey(data))
                         {

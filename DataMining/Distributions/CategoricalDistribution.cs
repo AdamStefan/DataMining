@@ -6,6 +6,7 @@ namespace DataMining.Distributions
     /// <summary>
     /// Also known as Multinomial distribution
     /// </summary>
+    [Serializable]
     public class CategoricalDistribution : IDistribution
     {
         #region Fields
@@ -42,7 +43,11 @@ namespace DataMining.Distributions
         public CategoricalDistribution(double[] weights)
         {
             var sum = weights.Sum();
-            _probabilities = weights.Select(item => item/sum).ToArray();
+            _probabilities = weights;
+            for (int index = 0; index < weights.Length; index++)
+            {
+                _probabilities[index] = _probabilities[index]/sum;
+            }            
 
             //for (int i = 0; i < _probabilities.Length; i++)
             //{
@@ -92,9 +97,14 @@ namespace DataMining.Distributions
         {
             if (value >= _probabilities.Length)
             {
-                return  Double.MinValue;
+                //return Math.Log(1.0/3767020);
+                return Double.MinValue;
             }
-            return Math.Log( _probabilities[(int) value]);
+            //var probability = Math.Abs(_probabilities[(int) value]) > 2*Double.Epsilon
+            //    ? _probabilities[(int) value]
+            //    : (1.0/3767020);
+            //return Math.Log(probability);
+            return Math.Log(_probabilities[(int)value]);
         }
 
         public double GetExpectation()
