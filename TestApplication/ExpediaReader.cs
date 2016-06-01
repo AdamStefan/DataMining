@@ -12,12 +12,37 @@ using DataMining.Distributions;
 
 namespace TestApplication
 {
-    public class ExpediaReader 
+    public class ExpediaReader
     {
         private int _count;
         private bool _loaded = false;
 
         private Dictionary<int, int>[] _symbols;
+
+        private int date_time = 0;
+        private int site_name = 1;
+        private int posa_continent = 2;
+        private int user_location_country = 3;
+        private int user_location_region = 4;
+        private int user_location_city = 5;
+        private int orig_destination_distance = 6;
+        private int user_id = 7;
+        private int is_mobile = 8;
+        private int is_package = 9;
+        private int channel = 10;
+        private int srch_ci = 11;
+        private int srch_co = 12;
+        private int srch_adults_cnt = 13;
+        private int srch_children_cnt = 14;
+        private int srch_rm_cnt = 15;
+        private int srch_destination_id = 16;
+        private int srch_destination_type_id = 17;
+        private int hotel_continent = 18;
+        private int hotel_country = 19;
+        private int hotel_market = 20;
+        private int is_booking = 21;
+        private int cnt = 22;
+        private int hotel_cluster = 23;
         private int[] _maximumValues = new int[24];
         private string _trainPath = @"C:\Research\Kaggle\Expedia\trainData\train.csv";
         private string _testPath = @"C:\Research\Kaggle\Expedia\test.csv";
@@ -25,8 +50,8 @@ namespace TestApplication
         //private double[,][] _probabilities;
         //private double[] _classesValues;
 
-        private  IDistribution[,] _distribution;
-        private  IDistribution _classesProbablityDistribution;
+        private IDistribution[,] _distribution;
+        private IDistribution _classesProbablityDistribution;
         private NaiveBayesClassifier _classifier;
         //private  List<int>[,] _nGramProbabilities;
 
@@ -59,10 +84,10 @@ namespace TestApplication
             _maximumValues[23] = 99;
 
             _numberOfLines = 37670293;
-            		        //2147483647	
-                            //1198785
+            //2147483647	
+            //1198785
 
-                              
+
 
             //if (!_loaded)
             //{
@@ -82,7 +107,7 @@ namespace TestApplication
             //                {
             //                    _maximumValues[index] = value.Value;
             //                }
-                            
+
             //            }
 
             //            //var columms = line.Split(",".ToCharArray());
@@ -126,9 +151,9 @@ namespace TestApplication
         [Serializable]
         public class Context
         {
-            
+
             public Dictionary<int, int>[] Symbols { get; set; }
-            
+
             public NaiveBayesClassifier NaiveBayesClassifier { get; set; }
 
         }
@@ -165,7 +190,7 @@ namespace TestApplication
 
                     //if (jIndex != 6)
                     //{
-                        probabilities[index, jIndex] = new double[_maximumValues[jIndex] + 1];
+                    probabilities[index, jIndex] = new double[_maximumValues[jIndex] + 1];
                     //}
                     //else
                     //{
@@ -177,7 +202,7 @@ namespace TestApplication
 
             DateTime dt = DateTime.Now;
             //var buffer = 100000000;
-            var buffer =    5000000;
+            var buffer = 5000000;
             var dataBuffer = new int?[23];
 
             using (
@@ -234,14 +259,14 @@ namespace TestApplication
                     foreach (var nGram in nGrams)
                     {
                         var code = GetDataFromLine(dataBuffer, nGram);
-                       
-                        var dict = _symbols[newColumndIndex];                       
+
+                        var dict = _symbols[newColumndIndex];
 
                         int value;
                         if (!dict.TryGetValue(code, out value))
                         {
                             dict.Add(code, dict.Count);
-                            
+
                             nGramProbabilities[classVal, newColumndIndex].Add(dict.Count - 1);
                         }
                         else
@@ -278,7 +303,7 @@ namespace TestApplication
                 {
                     //if (jindex != 6)
                     //{
-                        _distribution[index, jindex] = new CategoricalDistribution(probabilities[index, jindex]);
+                    _distribution[index, jindex] = new CategoricalDistribution(probabilities[index, jindex]);
                     //}
                     //else
                     //{
@@ -323,7 +348,7 @@ namespace TestApplication
 
         public void Derialize()
         {
-            
+
             // Open the file containing the data that you want to deserialize.
             FileStream fs = new FileStream("DataFile.dat", FileMode.Open);
             try
@@ -332,7 +357,7 @@ namespace TestApplication
 
                 // Deserialize the hashtable from the file and 
                 // assign the reference to the local variable.
-                var context = (Context)formatter.Deserialize(fs);
+                var context = (Context) formatter.Deserialize(fs);
                 this._classifier = context.NaiveBayesClassifier;
                 this._symbols = context.Symbols;
             }
@@ -361,7 +386,7 @@ namespace TestApplication
             ngrams.Add(new[] {7, 20});
             LoadProbabilities(ngrams);
             Estimate();
-          
+
         }
 
         public void Estimate()
@@ -375,34 +400,35 @@ namespace TestApplication
             ngrams.Add(new[] {7, 20});
             //var dataSamples = GetDataSamples(Enumerable.Range(0, 20), ngrams);
             var dataSamples = GetDataSamples(Enumerable.Empty<int>(), ngrams);
-            var index =0;
-            
+            var index = 0;
+
 
             var collectionPartitioner = Partitioner.Create(0, dataSamples.Count);
-                        
+
             Parallel.ForEach(collectionPartitioner, (range, loopState) =>
             {
                 NaiveBayesClassifier.ClassLikelyhood[] resultData = new NaiveBayesClassifier.ClassLikelyhood[Classes];
                 for (int i = range.Item1; i < range.Item2; i++)
                 {
                     _classifier.GetLikelyhood(dataSamples[i], resultData);
-                    dataSamples[i].Tag = resultData[0].ClassId + " " + resultData[1].ClassId + " " + resultData[2].ClassId + " " +
-                                 resultData[3].ClassId + " " + resultData[4].ClassId;
+                    dataSamples[i].Tag = resultData[0].ClassId + " " + resultData[1].ClassId + " " +
+                                         resultData[2].ClassId + " " +
+                                         resultData[3].ClassId + " " + resultData[4].ClassId;
                 }
             });
-           
+
 
             using (var sw = new StreamWriter(string.Format("Submission_{0}", DateTime.Now.ToString("dd-MM-yy hh-mm"))))
             {
                 sw.WriteLine("id,hotel_cluster");
                 foreach (var sample in dataSamples)
-                {                    
+                {
                     var data = index + "," + sample.Tag;
                     sw.WriteLine(data);
                     index ++;
                 }
             }
-            
+
         }
 
 
@@ -411,7 +437,7 @@ namespace TestApplication
             var list = new List<int>();
 
             using (var textString = new StreamReader(_trainPath,
-                    Encoding.ASCII, false, 1024 * 1024 * 300))
+                Encoding.ASCII, false, 1024*1024*300))
             {
                 textString.ReadLine();
                 while (!textString.EndOfStream)
@@ -431,11 +457,11 @@ namespace TestApplication
         }
 
         private int[][] ReadTrainPerClass(int composedColumn)
-        {                       
+        {
             var list = new List<int>[Classes];
 
             using (var textString = new StreamReader(_trainPath,
-                    Encoding.ASCII, false, 1024 * 1024 * 300))
+                Encoding.ASCII, false, 1024*1024*300))
             {
                 var line = textString.ReadLine();
                 while (!textString.EndOfStream)
@@ -552,16 +578,16 @@ namespace TestApplication
         }
 
         private int GetDataFromLine(string[] line, int[] columnIndexex, bool isTest = false)
-        {            
+        {
             var maxValue = 2000000;
-            var codeToRet = 0;               
+            var codeToRet = 0;
             foreach (var column in columnIndexex)
             {
                 var ret = GetDataFromLine(line, column, isTest);
-                                
+
                 if (ret.HasValue)
                 {
-                    codeToRet += maxValue + ret.Value;                    
+                    codeToRet += maxValue + ret.Value;
                 }
                 maxValue = maxValue << 1;
             }
@@ -588,6 +614,7 @@ namespace TestApplication
 
 
         public int Classes { get; set; }
+
         public int[] GetClassses()
         {
             return ReadTrain(23);
@@ -617,7 +644,7 @@ namespace TestApplication
                         var data = GetDataFromLine(columns, field, true);
                         if (data.HasValue)
                         {
-                            dataPoints.Add(new DataPoint() { ColumnId = field, Value = data.Value });
+                            dataPoints.Add(new DataPoint() {ColumnId = field, Value = data.Value});
                         }
                     }
                     var columnIndex = 0;
@@ -627,7 +654,7 @@ namespace TestApplication
                         var dict = _symbols[columnIndex];
                         if (dict.ContainsKey(data))
                         {
-                            dataPoints.Add(new DataPoint() { ColumnId = columnIndex + 23, Value = dict[data] });
+                            dataPoints.Add(new DataPoint() {ColumnId = columnIndex + 23, Value = dict[data]});
                         }
                         columnIndex++;
                     }
@@ -644,6 +671,6 @@ namespace TestApplication
         //{
         //    return ReadTrainPerClass(columns);
         //}
-        
+
     }
 }
