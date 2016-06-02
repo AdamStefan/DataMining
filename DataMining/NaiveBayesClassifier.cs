@@ -11,8 +11,7 @@ namespace DataMining
 
         private readonly IDistribution[,] _distribution;
 
-        private readonly IDistribution _classesProbablityDistribution;
-        private static ComparerLikelyhood _comparerLikelyhood = new ComparerLikelyhood();
+        private readonly IDistribution _classesProbablityDistribution;        
 
         private readonly int _classes;
 
@@ -205,46 +204,7 @@ namespace DataMining
                 }
             }
         }
-
-        public struct ClassLikelyhood
-        {
-            public int ClassId { get; set; }
-            public double Value { get; set; }
-        }
-
-        private class ComparerLikelyhood : IComparer<ClassLikelyhood>
-        {
-            public int Compare(ClassLikelyhood x, ClassLikelyhood y)
-            {
-                if (x.Value > y.Value)
-                {
-                    return -1;
-                }
-                else if (x.Value < y.Value)
-                {
-                    return 1;
-                }
-                return 0;
-            }
-        }
-
-        public void GetLikelyhood(DataSample sample, ClassLikelyhood[] result)
-        {
-            for (int index = 0; index < _classes; index++)
-            {
-                //result[index].Value = _classesProbablityDistribution.GetLogProbability(index);
-                result[index].ClassId = index;
-
-                foreach (var dataPoint in sample.DataPoints)
-                {
-                    var value = Convert.ToDouble(dataPoint.Value);
-
-                    result[index].Value = result[index].Value +
-                                          _distribution[index, dataPoint.ColumnId].GetLogProbability(value);
-                }
-            }
-            Array.Sort(result, _comparerLikelyhood);
-        }
+                     
 
     }
 }

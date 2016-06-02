@@ -113,5 +113,20 @@ namespace DataMining.Distributions
         }
 
         #endregion
+
+
+        public double GetProbability(double value)
+        {
+            if (value >= _probabilities.Length)
+            {
+                //return Math.Log(1.0/3767020);
+                return 0;
+            }
+            //var probability = Math.Abs(_probabilities[(int) value]) > 2*Double.Epsilon
+            //    ? _probabilities[(int) value]
+            //    : (1.0/3767020);
+            //return Math.Log(probability);
+            return _probabilities[(int)value];
+        }
     }
 }

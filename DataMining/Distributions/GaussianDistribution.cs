@@ -75,5 +75,14 @@ namespace DataMining.Distributions
         }
 
         #endregion
+
+
+        public double GetProbability(double value)
+        {
+            var coeff = StandardDeviation * Math.Sqrt(2 * Math.PI);
+            var exponentialValue = -Math.Pow(value - Expectation, 2) / 2 * StandardDeviation * StandardDeviation;
+            var retNotLog = (1 / coeff) * Math.Exp(exponentialValue);
+            return retNotLog;
+        }
     }
 }
