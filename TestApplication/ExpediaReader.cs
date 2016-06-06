@@ -17,7 +17,7 @@ namespace TestApplication
         private int _count;
         private bool _loaded = false;
 
-        private Dictionary<int, int>[] _symbols;
+        private Dictionary<FieldAttributeValue, int>[] _symbols;
 
         #region Fields
 
@@ -46,20 +46,23 @@ namespace TestApplication
         private int hotel_market = 22;
 
         private int hotel_cluster = 23;
-        private int[] testMappings = new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, -1, -1, 19, 20, 21 };
 
+        private readonly int[] _testMappings =
+        {
+            1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, -1, -1,
+            19, 20, 21
+        };
 
-
-        private int[] _maximumValues = new int[24];
+        private readonly int[] _maximumValues = new int[24];
 
         #endregion
 
-        private string _trainPath = @"C:\Working Projects\Kaggle\Expedia\train.csv";
-        private string _testPath = @"C:\Working Projects\Kaggle\Expedia\test.csv";
+        private string _trainPath = @"C:\Research\Kaggle\Expedia\trainData\train.csv";
+        private string _testPath = @"C:\Research\Kaggle\Expedia\test.csv";
         private int _numberOfLines = 0;
 
 
-        private static ComparerLikelyhood _comparerLikelyhood = new ComparerLikelyhood();
+        private static readonly ComparerLikelyhood _comparerLikelyhood = new ComparerLikelyhood();
 
         private IDistribution[,] _distribution;
         private IDistribution _classesProbablityDistribution;
@@ -72,7 +75,6 @@ namespace TestApplication
             _maximumValues[3] = 239;
             _maximumValues[4] = 1027;
             _maximumValues[5] = 56508;
-            //_maximumValues[6] = 12408/100;
             _maximumValues[6] = 12408;
             _maximumValues[7] = 1198785;
             _maximumValues[8] = 1;
@@ -93,66 +95,7 @@ namespace TestApplication
             _maximumValues[23] = 99;
 
             _numberOfLines = 37670293;
-            //2147483647	
-            //1198785
 
-
-
-            //if (!_loaded)
-            //{
-            //    using (var textString = new StreamReader(@"C:\Research\Kaggle\Expedia\trainData\train.csv",
-            //        System.Text.Encoding.ASCII, false, 100000000))
-            //    {
-            //        var line = textString.ReadLine();
-            //        while (!textString.EndOfStream)
-            //        {
-            //            _numberOfLines++;
-            //            line = textString.ReadLine();
-            //            var columms = line.Split(",".ToCharArray());
-            //            for (var index = 0; index < 24; index++)
-            //            {
-            //                var value = GetDataFromLine(columms,index);
-            //                if (value.HasValue && value.Value > _maximumValues[index])
-            //                {
-            //                    _maximumValues[index] = value.Value;
-            //                }
-
-            //            }
-
-            //            //var columms = line.Split(",".ToCharArray());
-            //            //var dateTime = DateTime.Parse(columms[0]);
-            //            //var siteName = int.Parse(columms[1]);
-            //            //var posa_continent = int.Parse(columms[2]);
-            //            //var user_location_country = int.Parse(columms[3]);
-            //            //var user_location_region = int.Parse(columms[4]);
-            //            //var user_location_city = int.Parse(columms[5]);
-            //            //var orig_destination_distance = int.Parse(columms[6]);
-            //            //var user_id = int.Parse(columms[7]);
-            //            //var is_mobile = int.Parse(columms[8]);
-            //            //var is_package = int.Parse(columms[9]);
-            //            //var channel = int.Parse(columms[10]);
-            //            //var srch_ci = int.Parse(columms[11]);
-            //            //var srch_co = int.Parse(columms[12]);
-            //            //var srch_adults_cnt = int.Parse(columms[13]);
-            //            //var srch_children_cnt = int.Parse(columms[14]);
-            //            //var srch_rm_cnt = int.Parse(columms[15]);
-            //            //var srch_destination_id = int.Parse(columms[16]);
-            //            //var srch_destination_type_id = int.Parse(columms[17]);
-            //            //var hotel_continent = int.Parse(columms[18]);
-            //            //var hotel_country = int.Parse(columms[19]);
-            //            //var hotel_market = int.Parse(columms[20]);
-            //            //var is_booking = int.Parse(columms[21]);
-            //            //var cnt = int.Parse(columms[22]);
-            //            //var classId = int.Parse(columms[23]);
-            //            //if (!hashSet.Contains(classId))
-            //            //{
-            //            //    hashSet.Add(classId);
-            //            //}
-            //        }
-            //    }
-
-            //    _loaded = true;
-            //}
             _loaded = true;
             Classes = _maximumValues[23] + 1;
         }
@@ -161,7 +104,7 @@ namespace TestApplication
         public class Context
         {
 
-            public Dictionary<int, int>[] Symbols { get; set; }
+            public Dictionary<FieldAttributeValue, int>[] Symbols { get; set; }
 
             public IDistribution[,] Distribution { get; set; }
             public IDistribution ClassesProbablityDistribution { get; set; }
@@ -175,19 +118,17 @@ namespace TestApplication
                 nGrams = new List<NGram>();
             }
             var totalColumns = 23 + nGrams.Count();
-            var bookedItems = 0;
-            var notbooked = 0;
 
             var probabilities = new double[Classes, totalColumns][];
             var nGramProbabilities = new List<int>[Classes, nGrams.Count()];
             var classesValues = new double[Classes];
-            _symbols = new Dictionary<int, int>[nGrams.Count];
+            _symbols = new Dictionary<FieldAttributeValue, int>[nGrams.Count];
 
             _distribution = new IDistribution[Classes, totalColumns];
 
             for (int index = 0; index < nGrams.Count; index++)
             {
-                _symbols[index] = new Dictionary<int, int>();
+                _symbols[index] = new Dictionary<FieldAttributeValue, int>();
                 for (int jindex = 0; jindex < Classes; jindex++)
                 {
                     nGramProbabilities[jindex, index] = new List<int>();
@@ -195,11 +136,9 @@ namespace TestApplication
 
             }
 
-
-
             DateTime dt = DateTime.Now;
             var buffer = 5000000;
-            var dataBuffer = new int?[23];
+            var dataBuffer = new double?[23];
 
             using (
                 var textString = new StreamReader(_trainPath,
@@ -211,33 +150,14 @@ namespace TestApplication
 
                     line = textString.ReadLine();
                     var columms = line.Split(',');
-                    var classVal = GetDataFromLine(columms, 23).Value;
+                    var classVal = Convert.ToInt32(GetDataFromLine(columms, 23).Value);
                     var isbooked = int.Parse(columms[is_booking]) == 1;
 
-                    //if (isbooked)
-                    //{
                     classesValues[classVal] += 1;
-                    //}
-                    //else
-                    //{
-                    //    classesValues[classVal] += 0.05;
-                    //}
 
                     for (var index = 0; index < 21; index++)
                     {
-                        dataBuffer[index] = GetDataFromLine(columms, index);
-                        //if (dataBuffer[index].HasValue )
-                        //{
-                        //    var value = dataBuffer[index].Value;
-                        //    if (isbooked)
-                        //    {
-                        //        probabilities[classVal, index][value] += 1;
-                        //    }
-                        //    else
-                        //    {
-                        //        probabilities[classVal, index][value] += 0.05;
-                        //    }                           
-                        //}
+                        dataBuffer[index] = GetDataFromLine(columms, index);                       
                     }
                     var newColumndIndex = 0;
 
@@ -249,7 +169,7 @@ namespace TestApplication
                             continue;
                         }
                         var code = GetDataFromLine(dataBuffer, nGram.Columns);
-                        if (!code.HasValue)
+                        if (code == null)
                         {
                             newColumndIndex++;
                             continue;
@@ -258,17 +178,17 @@ namespace TestApplication
                         var dict = _symbols[newColumndIndex];
 
                         int value;
-                        if (!dict.TryGetValue(code.Value, out value))
+                        if (!dict.TryGetValue(code, out value))
                         {
-                            dict.Add(code.Value, dict.Count);
+                            value = dict.Count;
+                            dict.Add(code, dict.Count);
 
-                            nGramProbabilities[classVal, newColumndIndex].Add(isbooked
-                                ? (dict.Count)
-                                : -(dict.Count));
+                            nGramProbabilities[classVal, newColumndIndex].Add(value);
                         }
                         else
                         {
-                            nGramProbabilities[classVal, newColumndIndex].Add(isbooked ? value + 1 : -(value + 1));
+                            //nGramProbabilities[classVal, newColumndIndex].Add(isbooked ? value + 1 : -(value + 1));
+                            nGramProbabilities[classVal, newColumndIndex].Add(value);
                         }
 
 
@@ -285,34 +205,43 @@ namespace TestApplication
             {
                 for (int jindex = 0; jindex < nGramProbabilities.GetLength(1); jindex++)
                 {
-                    var dict = _symbols[jindex];
-                    probabilities[index, 23 + jindex] = new double[dict.Count + 1];
-                    foreach (var value in nGramProbabilities[index, jindex])
-                    {
-                        var absValue = Math.Abs(value) - 1;
-                        probabilities[index, 23 + jindex][absValue] += value >= 0 ? 1 : 0.05;
-                    }
+                    //var dict = _symbols[jindex];
+                    //probabilities[index, 23 + jindex] = new double[dict.Count + 1];
+                    //foreach (var value in nGramProbabilities[index, jindex])
+                    //{
+                    //    var absValue = Math.Abs(value) - 1;
+                    //    //probabilities[index, 23 + jindex][absValue] += value >= 0 ? 1 : 0.05;
+                    //    probabilities[index, 23 + jindex][absValue] += value >= 0 ? 1 : 0.05;
+
+
+                    //}
+                    _distribution[index, 23 + jindex] = new DictionaryCategoricalDistribution(nGramProbabilities[index, jindex]);
                 }
             }
 
-            for (int index = 0; index < probabilities.GetLength(0); index++)
-            {
-                for (int jindex = 23; jindex < probabilities.GetLength(1); jindex++)
-                {
-                    _distribution[index, jindex] = new CategoricalDistribution(probabilities[index, jindex]);
-                }
-            }
+            //for (int index = 0; index < probabilities.GetLength(0); index++)
+            //{
+            //    for (int jindex = 23; jindex < probabilities.GetLength(1); jindex++)
+            //    {
+            //        _distribution[index, jindex] = new CategoricalDistribution(probabilities[index, jindex]);
+            //    }
+            //}
 
             _classesProbablityDistribution = new CategoricalDistribution(classesValues);
 
-            Serialize();
+            //Serialize();
         }
 
 
 
         public void Serialize()
         {
-            var context = new Context() { Symbols = _symbols, ClassesProbablityDistribution = _classesProbablityDistribution, Distribution = _distribution };
+            var context = new Context()
+            {
+                Symbols = _symbols,
+                ClassesProbablityDistribution = _classesProbablityDistribution,
+                Distribution = _distribution
+            };
             FileStream fs = new FileStream("DataFile.dat", FileMode.Create);
 
             // Construct a BinaryFormatter and use it to serialize the data to the stream.
@@ -343,7 +272,7 @@ namespace TestApplication
 
                 // Deserialize the hashtable from the file and 
                 // assign the reference to the local variable.
-                var context = (Context)formatter.Deserialize(fs);
+                var context = (Context) formatter.Deserialize(fs);
                 this._distribution = context.Distribution;
                 this._classesProbablityDistribution = context.ClassesProbablityDistribution;
                 this._symbols = context.Symbols;
@@ -364,21 +293,30 @@ namespace TestApplication
         {
             Init();
 
-            var ngrams = new List<NGram>();
-
-            ngrams.Add(new NGram(new[] { user_location_city, orig_destination_distance, srch_children_cnt }) { IsBookingOnly = true });
-            ngrams.Add(new NGram(new[] { user_location_city, orig_destination_distance }) { IsBookingOnly = true });
-            // is booking only
-            ngrams.Add(new NGram(new[] { user_id, user_location_city, srch_destination_id, hotel_country, hotel_market }) { IsBookingOnly = true }); // is booking only
-            ngrams.Add(new NGram(new[] { user_id, srch_destination_id, hotel_country, hotel_market })
+            var ngrams = new List<NGram>
             {
-                IsBookingOnly = true
-            }); // is booking only
+                new NGram(new[] {user_location_city, orig_destination_distance}),
+                            
+                new NGram(new[] {user_id, srch_destination_id, hotel_country, hotel_market})
+                {
+                    IsBookingOnly = true
+                },
 
-            ngrams.Add(new NGram(new[] { user_location_city, srch_destination_id, srch_children_cnt }) { IsBookingOnly = true });
-            ngrams.Add(new NGram(new[] { srch_destination_id, hotel_country, hotel_market, is_package }) { IsBookingOnly = true });
-            ngrams.Add(new NGram(new[] { hotel_market }) { IsBookingOnly = true });
-            ngrams.Add(new NGram(new[] { srch_destination_id }));
+                new NGram(new[] {user_location_city, srch_destination_id, srch_children_cnt, srch_ci})
+                {
+                    IsBookingOnly = true
+                },
+                new NGram(new[] {user_location_city, srch_destination_id, srch_ci}) {IsBookingOnly = true},
+
+                new NGram(new[] {user_location_city, srch_destination_id}) {IsBookingOnly = true},
+
+                new NGram(new[] {srch_destination_id, hotel_country, hotel_market, is_package}) {IsBookingOnly = true},
+                new NGram(new[] {hotel_market}) {IsBookingOnly = true},
+                
+                new NGram(new[] {srch_destination_id})
+            };
+
+
 
             LoadProbabilities(ngrams);
             Estimate();
@@ -387,34 +325,65 @@ namespace TestApplication
 
         private class NGram
         {
-            public int[] Columns { get; set; }
+            public int[] Columns { get; private set; }
             public bool IsBookingOnly { get; set; }
 
             public NGram(int[] columns)
             {
                 Columns = columns;
-
             }
         }
 
         public void Estimate()
         {
-            var ngrams = new List<NGram>();
 
 
-            ngrams.Add(new NGram(new[] { user_location_city, orig_destination_distance, srch_children_cnt }) { IsBookingOnly = true });
-            ngrams.Add(new NGram(new[] { user_location_city, orig_destination_distance }) { IsBookingOnly = true });
-            // is booking only
-            ngrams.Add(new NGram(new[] { user_id, user_location_city, srch_destination_id, hotel_country, hotel_market }) { IsBookingOnly = true }); // is booking only
-            ngrams.Add(new NGram(new[] { user_id, srch_destination_id, hotel_country, hotel_market })
+            //ngrams.Add(new NGram(new[] {user_id, srch_destination_id, srch_children_cnt}) {IsBookingOnly = true});
+            //    // is booking only
+            //ngrams.Add(new NGram(new[] {user_id, srch_destination_id}) {IsBookingOnly = true}); // is booking only
+            //ngrams.Add(new NGram(new[] {user_location_city, orig_destination_distance, srch_destination_id})
+            //{
+            //    IsBookingOnly = true
+            //}); // is booking only
+
+            //ngrams.Add(new NGram(new[] { user_location_city, srch_destination_id, srch_children_cnt }) { IsBookingOnly = true });
+            //ngrams.Add(new NGram(new[] { user_location_city, srch_destination_id }) { IsBookingOnly = true });
+
+
+            //var ngrams = new List<NGram>
+            //{
+            //    new NGram(new[] {user_location_city, orig_destination_distance}),               
+            //    new NGram(new[] {srch_destination_id})
+            //};
+
+
+            var ngrams = new List<NGram>
             {
-                IsBookingOnly = true
-            }); // is booking only
+                new NGram(new[] {user_location_city, orig_destination_distance}),
+                            
+                new NGram(new[] {user_id, srch_destination_id, hotel_country, hotel_market})
+                {
+                    IsBookingOnly = true
+                },
 
-            ngrams.Add(new NGram(new[] { user_location_city, srch_destination_id, srch_children_cnt }) { IsBookingOnly = true });
-            ngrams.Add(new NGram(new[] { srch_destination_id, hotel_country, hotel_market, is_package }) { IsBookingOnly = true });
-            ngrams.Add(new NGram(new[] { hotel_market }) { IsBookingOnly = true });
-            ngrams.Add(new NGram(new[] { srch_destination_id }));
+                new NGram(new[] {user_location_city, srch_destination_id, srch_children_cnt, srch_ci})
+                {
+                    IsBookingOnly = true
+                },
+                new NGram(new[] {user_location_city, srch_destination_id, srch_ci}) {IsBookingOnly = true},
+
+                new NGram(new[] {user_location_city, srch_destination_id}) {IsBookingOnly = true},
+
+                new NGram(new[] {srch_destination_id, hotel_country, hotel_market, is_package}) {IsBookingOnly = true},
+                new NGram(new[] {hotel_market}) {IsBookingOnly = true},
+                
+                new NGram(new[] {srch_destination_id})
+            };
+
+            // is booking only
+            // is booking only
+            // is booking only
+
 
 
             //var dataSamples = GetDataSamples(Enumerable.Range(0, 20), ngrams);
@@ -426,7 +395,7 @@ namespace TestApplication
 
             Parallel.ForEach(collectionPartitioner, (range, loopState) =>
             {
-                ClassLikelyhood[] resultData = new ClassLikelyhood[2 * Classes];
+                ClassLikelyhood[] resultData = new ClassLikelyhood[2*Classes];
                 for (int i = range.Item1; i < range.Item2; i++)
                 {
                     GetLikelyhood(dataSamples[i], resultData);
@@ -437,7 +406,7 @@ namespace TestApplication
             });
 
 
-            ClassLikelyhood[] resData = new ClassLikelyhood[2 * Classes];
+            ClassLikelyhood[] resData = new ClassLikelyhood[2*Classes];
             GetLikelyhood(dataSamples[0], resData);
             using (var sw = new StreamWriter(string.Format("Submission_{0}", DateTime.Now.ToString("dd-MM-yy hh-mm"))))
             {
@@ -452,12 +421,55 @@ namespace TestApplication
 
         }
 
+        public class FieldAttributeValue
+        {
+            private readonly double[] _values;
+            
+            public FieldAttributeValue(double[] values)
+            {
+                _values = values;
+            }
 
-        private int? GetDataFromLine(string[] line, int columnIndex, bool isTest = false)
+            protected bool Equals(FieldAttributeValue other)
+            {
+                for (int index = 0; index < _values.Length; index++)
+                {
+                    if (_values[index] != other._values[index])
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (ReferenceEquals(null, obj)) return false;
+                if (ReferenceEquals(this, obj)) return true;
+                if (obj.GetType() != this.GetType()) return false;
+                return Equals((FieldAttributeValue) obj);
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    var ret = 0;
+                    foreach (var item in _values)
+                    {
+                        ret = (ret * 397) ^ (item.GetHashCode());
+                    }
+                    return ret;
+                }
+            }
+        }
+
+        private double? GetDataFromLine(string[] line, int columnIndex, bool isTest = false)
         {
             if (columnIndex <= 23)
             {
-                var data = !isTest ? line[columnIndex] : line[testMappings[columnIndex]];
+                var data = !isTest ? line[columnIndex] : line[_testMappings[columnIndex]];
 
                 if (columnIndex == date_time || columnIndex == srch_ci || columnIndex == srch_co)
                 {
@@ -472,8 +484,7 @@ namespace TestApplication
                     double value;
                     if (Double.TryParse(data, out value))
                     {
-                        return Convert.ToInt32(value);
-                        //return value.GetHashCode();
+                        return value;                        
                     }
                 }
                 else if (columnIndex == srch_children_cnt)
@@ -487,7 +498,7 @@ namespace TestApplication
                         }
                         return value;
                     }
-                   
+
                 }
                 else
                 {
@@ -501,47 +512,47 @@ namespace TestApplication
             return null;
         }
 
-        private int? GetDataFromLine(string[] line, int[] columnIndexex, bool isTest = false)
+        private FieldAttributeValue GetDataFromLine(string[] line, int[] columnIndexex, bool isTest = false)
         {
-            var maxValue = 2000000;
-            var codeToRet = 0;
-            foreach (var column in columnIndexex)
+            var data = new double[columnIndexex.Length];
+
+            for (int index = 0; index < columnIndexex.Length; index++)
             {
-                var ret = GetDataFromLine(line, column, isTest);
+                var ret = GetDataFromLine(line, columnIndexex[index], isTest);
 
                 if (ret.HasValue)
                 {
-                    codeToRet += maxValue + ret.Value;
+                    data[index] = ret.Value;
                 }
                 else
                 {
                     return null;
                 }
-                maxValue = maxValue << 1;
             }
-            return codeToRet;
+            return new FieldAttributeValue(data);
         }
 
-        private int? GetDataFromLine(int?[] values, int[] columnIndexex, bool isTest = false)
+        private FieldAttributeValue GetDataFromLine(double?[] values, int[] columnIndexex, bool isTest = false)
         {
-            var maxValue = 2000000;
-            var codeToRet = 0;
-            foreach (var column in columnIndexex)
+            var data = new double[columnIndexex.Length];
+
+            for (int index = 0; index < columnIndexex.Length; index++)
             {
-                var ret = values[column];
+                var ret = values[columnIndexex[index]];
 
                 if (ret.HasValue)
                 {
-                    codeToRet += maxValue + ret.Value;
+                    data[index] = ret.Value;
                 }
                 else
                 {
                     return null;
                 }
-                maxValue = maxValue << 1;
             }
-            return codeToRet;
+            return new FieldAttributeValue(data);
         }
+
+       
 
         public void GetLikelyhood(DataSample sample, ClassLikelyhood[] result)
         {
@@ -560,7 +571,8 @@ namespace TestApplication
                     }
 
                     var value = Convert.ToDouble(dataPoint.Value);
-                    var prob = _distribution[index, dataPoint.ColumnId].GetProbability(value) * _classesProbablityDistribution.GetProbability(index);
+                    var prob = _distribution[index, dataPoint.ColumnId].GetProbability(value)*
+                               _classesProbablityDistribution.GetProbability(index);
 
                     if (prob > Double.Epsilon)
                     {
@@ -625,19 +637,19 @@ namespace TestApplication
                         var data = GetDataFromLine(columns, field, true);
                         if (data.HasValue)
                         {
-                            dataPoints.Add(new DataPoint { ColumnId = field, Value = data.Value });
+                            dataPoints.Add(new DataPoint {ColumnId = field, Value = data.Value});
                         }
                     }
                     var columnIndex = 0;
                     foreach (var field in nGrams)
                     {
                         var data = GetDataFromLine(columns, field.Columns, true);
-                        if (data.HasValue)
+                        if (data != null)
                         {
                             var dict = _symbols[columnIndex];
-                            if (dict.ContainsKey(data.Value))
+                            if (dict.ContainsKey(data))
                             {
-                                dataPoints.Add(new DataPoint { ColumnId = columnIndex + 23, Value = dict[data.Value] });
+                                dataPoints.Add(new DataPoint {ColumnId = columnIndex + 23, Value = dict[data]});
                             }
                         }
                         columnIndex++;
@@ -671,6 +683,112 @@ namespace TestApplication
         {
             public int ClassId { get; set; }
             public double Value { get; set; }
+        }
+
+
+        public class DictionaryCategoricalDistribution : IDistribution
+        {
+            #region Fields
+
+            private readonly Dictionary<int, double> _probabilities;
+            private double? _expectation;
+
+            #endregion
+
+            #region Properties
+
+            public double Expectation
+            {
+                get
+                {
+
+                    if (!_expectation.HasValue)
+                    {
+                        var maxValue = _probabilities.Keys.Max() + 1;
+                        var exp = 0.0;
+                        for (int i = 0; i < maxValue; i++)
+                        {
+                            double value;
+                            _probabilities.TryGetValue(i, out value);
+                            exp += (i + 1) * value;
+                        }
+                        _expectation = exp;
+                    }
+                    return _expectation.Value;
+                }
+
+            }
+
+            #endregion
+
+            #region Instance
+
+            public DictionaryCategoricalDistribution(List<int> values)
+            {
+                _probabilities = new Dictionary<int, double>();
+                var sum = values.Count;
+                foreach (var value in values)
+                {
+                    if (!_probabilities.ContainsKey(value))
+                    {
+                        _probabilities.Add(value, 1);
+                    }
+                    else
+                    {
+                        _probabilities[value]++;
+                    }
+                }
+
+
+                foreach (var key in _probabilities.Keys.ToArray())
+                {
+                    _probabilities[key] = _probabilities[key] / sum;
+                }
+            }
+
+
+
+
+            #endregion
+
+            #region Methods
+
+            public double GetLogProbability(double value)
+            {
+
+                if (_probabilities.ContainsKey(Convert.ToInt32(value)))
+                {
+                    //return Math.Log(1.0/3767020);
+                    return Double.MinValue;
+                }
+                //var probability = Math.Abs(_probabilities[(int) value]) > 2*Double.Epsilon
+                //    ? _probabilities[(int) value]
+                //    : (1.0/3767020);
+                //return Math.Log(probability);
+                return Math.Log(_probabilities[(int)value]);
+            }
+
+            public double GetExpectation()
+            {
+                return Expectation;
+            }
+
+            #endregion
+
+
+            public double GetProbability(double value)
+            {
+                if (!_probabilities.ContainsKey(Convert.ToInt32(value)))
+                {
+                    //return Math.Log(1.0/3767020);
+                    return 0;
+                }
+                //var probability = Math.Abs(_probabilities[(int) value]) > 2*Double.Epsilon
+                //    ? _probabilities[(int) value]
+                //    : (1.0/3767020);
+                //return Math.Log(probability);
+                return _probabilities[(int)value];
+            }
         }
 
     }

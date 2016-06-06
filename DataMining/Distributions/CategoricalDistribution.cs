@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace DataMining.Distributions
@@ -129,4 +130,6 @@ namespace DataMining.Distributions
             return _probabilities[(int)value];
         }
     }
+
+      
 }
